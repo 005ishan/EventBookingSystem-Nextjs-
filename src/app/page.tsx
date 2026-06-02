@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import NavLink from "@/components/NavLink";
 import EventCard from "@/components/EventCard";
 import AuthModal from "@/components/AuthModal";
 import FooterLink from "@/components/FooterLink";
 
 export default function LandingPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [currentFeatured, setCurrentFeatured] = useState(0);
   const [showModal, setShowModal] = useState(false);
@@ -116,11 +118,11 @@ export default function LandingPage() {
           </div>
           <div className="flex shrink-0 items-center gap-2.5 justify-self-end">
             <button className="flex flex-col shrink-0 items-start bg-transparent text-left py-2 px-5 rounded-lg border border-solid border-[#FFFFFF2E] hover:bg-white/5"
-              onClick={() => alert("Pressed!")}>
+              onClick={() => router.push("/auth/login")}>
               <span className="text-[#E8E4DA] text-sm">Log in</span>
             </button>
             <button className="flex flex-col shrink-0 items-start bg-[#4A7AFF] text-left py-[7px] px-[21px] rounded-lg border-0 hover:bg-[#3A6AEF]"
-              onClick={() => alert("Pressed!")}>
+              onClick={() => router.push("/auth/signup")}>
               <span className="text-white text-sm">Sign up</span>
             </button>
           </div>
