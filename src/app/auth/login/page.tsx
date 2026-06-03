@@ -16,18 +16,11 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-[#0A0E1A] flex items-center justify-center px-4">
       <div className="relative w-[575px] bg-[#10152A] rounded-2xl px-[52px] pt-12 pb-10 border border-white/10 shadow-2xl">
-        <button
-          className="absolute top-5 left-6 text-gray-500 hover:text-gray-300 text-sm transition-colors flex items-center gap-1.5"
-          onClick={() => router.push("/")}
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-          Back
-        </button>
-
         <div className="flex flex-col items-center gap-1.5 mb-8 mt-4">
-          <Link href="/" className="flex flex-col items-center justify-center hover:opacity-80 transition-opacity">
+          <Link
+            href="/"
+            className="flex flex-col items-center justify-center hover:opacity-80 transition-opacity"
+          >
             <span className="text-[#E8E4DA] text-xl font-bold">
               Event
               <span className="bg-gradient-to-r from-[#4A7AFF] to-[#bcb6fc] bg-clip-text text-transparent">
@@ -37,9 +30,7 @@ export default function LoginPage() {
             </span>
           </Link>
 
-          <h1 className="text-[#E8E4DA] text-[28px] font-bold mt-4">
-            Login
-          </h1>
+          <h1 className="text-[#E8E4DA] text-[28px] font-bold mt-4">Login</h1>
 
           <p className="text-[#E8E4DA]/40 text-[13px] font-light">
             Sign in to your EBS account
@@ -127,20 +118,43 @@ export default function LoginPage() {
 
         <div className="flex gap-3 mb-7">
           <button className="flex-1 h-11 bg-white/4 rounded-[10px] border border-white/10 flex items-center justify-center gap-2 hover:bg-white/10 transition-all">
-            <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
-              <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
-              <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
-              <path d="M3.964 10.71a5.41 5.41 0 0 1-.282-1.71c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
-              <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 18 18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"
+                fill="#4285F4"
+              />
+              <path
+                d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"
+                fill="#34A853"
+              />
+              <path
+                d="M3.964 10.71a5.41 5.41 0 0 1-.282-1.71c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"
+                fill="#FBBC05"
+              />
+              <path
+                d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"
+                fill="#EA4335"
+              />
             </svg>
-            <span className="text-[#E8E4DA]/70 text-[13px] font-medium">Google</span>
+            <span className="text-[#E8E4DA]/70 text-[13px] font-medium">
+              Google
+            </span>
           </button>
 
           <button className="flex-1 h-11 bg-white/4 rounded-[10px] border border-white/10 flex items-center justify-center gap-2 hover:bg-white/10 transition-all">
             <div className="w-[18px] h-[18px] bg-[#1877F2] rounded flex items-center justify-center">
-              <span className="text-white text-[13px] font-bold leading-[13px]">f</span>
+              <span className="text-white text-[13px] font-bold leading-[13px]">
+                f
+              </span>
             </div>
-            <span className="text-[#E8E4DA]/70 text-[13px] font-medium">Facebook</span>
+            <span className="text-[#E8E4DA]/70 text-[13px] font-medium">
+              Facebook
+            </span>
           </button>
         </div>
 
