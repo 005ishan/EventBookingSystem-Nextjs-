@@ -15,7 +15,7 @@ export default function Navbar() {
       <div className="flex justify-center items-center gap-2">
         <NavLink text="Home" isActive={pathname === "/"} href="/" />
         <NavLink text="About us" isActive={pathname === "/about"} href="/about" />
-        <NavLink text="Contact us" isActive={pathname === "/contact"} />
+        <NavLink text="Contact us" isActive={pathname === "/contact"} href="/contact" />
       </div>
       <div className="flex shrink-0 items-center gap-2.5 justify-self-end">
         <button className="flex flex-col shrink-0 items-start bg-transparent text-left py-2 px-5 rounded-lg border border-solid border-[#FFFFFF2E] hover:bg-white/5"
