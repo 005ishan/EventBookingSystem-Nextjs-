@@ -3,14 +3,30 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { loginUser } from "@/services/authService";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleLogin() {
-    alert("Logging in with: " + email);
+  async function handleLogin() {
+    setError("");
+    setLoading(true);
+
+    try {
+      const data = await loginUser(email, password);
+      alert(data.message || "Login successful!");
+      router.push("/dashboard");
+    } catch (err: any) {
+      const message =
+        err.response?.data?.message || "Login failed. Please try again.";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -36,6 +52,13 @@ export default function LoginPage() {
             Sign in to your EBS account
           </p>
         </div>
+
+        {/* Error message */}
+        {error && (
+          <div className="mb-4 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-xl p-3 text-center">
+            {error}
+          </div>
+        )}
 
         <div className="mb-4">
           <label className="block text-[#E8E4DA]/55 text-xs font-medium tracking-[0.40px] mb-[7px]">
@@ -101,11 +124,12 @@ export default function LoginPage() {
 
         <div className="mb-6">
           <button
-            className="w-full h-12 bg-[#4A7AFF] rounded-[11px] flex items-center justify-center hover:bg-[#3A6AEF] active:bg-[#2A5ADF] transition-all duration-200"
+            className="w-full h-12 bg-[#4A7AFF] rounded-[11px] flex items-center justify-center hover:bg-[#3A6AEF] active:bg-[#2A5ADF] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleLogin}
+            disabled={loading}
           >
             <span className="text-white text-[15px] font-medium tracking-[0.20px]">
-              Log in
+              {loading ? "Logging in..." : "Log in"}
             </span>
           </button>
         </div>

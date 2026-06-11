@@ -1,10 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
+import AuthenticatedNavbar from "@/components/AuthenticatedNavbar";
 import Footer from "@/components/Footer";
+import { isAuthenticated } from "@/services/authService";
 
 export default function ContactPage() {
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  useEffect(() => {
+    setLoggedIn(isAuthenticated());
+  }, []);
+
   // Form state
   const [formData, setFormData] = useState({
     name: "",
@@ -35,7 +43,7 @@ export default function ContactPage() {
         className="self-stretch bg-[#0A0E1A] border border-solid border-black flex flex-col min-h-screen"
         style={{ boxShadow: "0px 4px 4px #00000040" }}
       >
-        <Navbar />
+        {loggedIn ? <AuthenticatedNavbar /> : <Navbar />}
 
         <div className="flex-1 overflow-y-auto">
           {/* ========== HERO SECTION ========== */}

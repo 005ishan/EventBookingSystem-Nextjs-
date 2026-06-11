@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { registerUser, verifyOtp } from "@/services/authService";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -11,11 +12,147 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSignup() {
-    alert("Signing up with: " + email);
+  // OTP verification state
+  const [showOtp, setShowOtp] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [otpLoading, setOtpLoading] = useState(false);
+
+  async function handleSignup() {
+    setError("");
+
+    // Client-side validation
+    if (!firstName || !lastName || !email || !password || !confirmPassword) {
+      setError("All fields are required");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const fullName = `${firstName} ${lastName}`.trim();
+      const data = await registerUser(fullName, email, password);
+      setShowOtp(true);
+      alert(data.message || "OTP sent to your email. Please verify.");
+    } catch (err: any) {
+      const message =
+        err.response?.data?.message || "Registration failed. Please try again.";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
   }
 
+  async function handleVerifyOtp() {
+    setError("");
+    setOtpLoading(true);
+
+    try {
+      const data = await verifyOtp(email, otp);
+      alert(data.message || "Email verified successfully!");
+      router.push("/auth/login");
+    } catch (err: any) {
+      const message =
+        err.response?.data?.message || "OTP verification failed.";
+      setError(message);
+    } finally {
+      setOtpLoading(false);
+    }
+  }
+
+  // If OTP step is active, show OTP verification UI instead
+  if (showOtp) {
+    return (
+      <div className="min-h-screen bg-[#0A0E1A] flex items-center justify-center px-4">
+        <div className="relative w-[575px] bg-[#10152A] rounded-2xl px-[52px] pt-12 pb-10 border border-white/10 shadow-2xl">
+          <div className="flex flex-col items-center gap-1.5 mb-8 mt-4">
+            <Link
+              href="/"
+              className="flex flex-col items-center justify-center hover:opacity-80 transition-opacity"
+            >
+              <span className="text-[#E8E4DA] text-xl font-bold">
+                Event
+                <span className="bg-gradient-to-r from-[#4A7AFF] to-[#bcb6fc] bg-clip-text text-transparent">
+                  Booking
+                </span>
+                System
+              </span>
+            </Link>
+
+            <h1 className="text-[#E8E4DA] text-[28px] font-bold mt-4">
+              Verify Email
+            </h1>
+
+            <p className="text-[#E8E4DA]/40 text-[13px] font-light">
+              Enter the OTP sent to {email}
+            </p>
+          </div>
+
+          {/* Error message */}
+          {error && (
+            <div className="mb-4 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-xl p-3 text-center">
+              {error}
+            </div>
+          )}
+
+          <div className="mb-6">
+            <label className="block text-[#E8E4DA]/55 text-xs font-medium tracking-[0.40px] mb-[7px]">
+              OTP Code
+            </label>
+            <div className="relative">
+              <svg
+                className="absolute left-[14px] top-1/2 -translate-y-1/2 w-4 h-4 text-white/25"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
+                />
+              </svg>
+              <input
+                type="text"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                placeholder="Enter 6-digit OTP"
+                maxLength={6}
+                className="w-full h-[46px] bg-white/5 rounded-[10px] border border-white/12 pl-[42px] pr-[14px] text-sm text-[#E8E4DA] placeholder:text-[#E8E4DA]/25 focus:outline-none focus:border-[#4A7AFF]/50 transition-all tracking-[8px] text-center text-lg font-bold"
+              />
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <button
+              className="w-full h-12 bg-[#4A7AFF] rounded-[11px] flex items-center justify-center hover:bg-[#3A6AEF] active:bg-[#2A5ADF] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleVerifyOtp}
+              disabled={otpLoading || otp.length !== 6}
+            >
+              <span className="text-white text-[15px] font-medium tracking-[0.20px]">
+                {otpLoading ? "Verifying..." : "Verify OTP"}
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Signup form (default view)
   return (
     <div className="min-h-screen bg-[#0A0E1A] flex items-center justify-center px-4">
       <div className="relative w-[575px] bg-[#10152A] rounded-2xl px-[52px] pt-12 pb-10 border border-white/10 shadow-2xl">
@@ -41,6 +178,13 @@ export default function SignupPage() {
             Join EBS and discover amazing experiences
           </p>
         </div>
+
+        {/* Error message */}
+        {error && (
+          <div className="mb-4 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-xl p-3 text-center">
+            {error}
+          </div>
+        )}
 
         <div className="flex gap-4 mb-5">
           <div className="flex-1">
@@ -185,11 +329,12 @@ export default function SignupPage() {
 
         <div className="mb-6">
           <button
-            className="w-full h-12 bg-[#4A7AFF] rounded-[11px] flex items-center justify-center hover:bg-[#3A6AEF] active:bg-[#2A5ADF] transition-all duration-200"
+            className="w-full h-12 bg-[#4A7AFF] rounded-[11px] flex items-center justify-center hover:bg-[#3A6AEF] active:bg-[#2A5ADF] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleSignup}
+            disabled={loading}
           >
             <span className="text-white text-[15px] font-medium tracking-[0.20px]">
-              Create Account
+              {loading ? "Creating account..." : "Create Account"}
             </span>
           </button>
         </div>

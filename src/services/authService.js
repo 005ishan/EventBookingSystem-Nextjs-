@@ -1,0 +1,75 @@
+import api from "./api";
+
+/**
+ * Register a new user
+ * @param {string} name - User's full name
+ * @param {string} email - User's email
+ * @param {string} password - User's password
+ * @returns {Promise<{message: string}>}
+ */
+export async function registerUser(name, email, password) {
+  const response = await api.post("/auth/register", { name, email, password });
+  return response.data;
+}
+
+/**
+ * Verify OTP to complete registration
+ * @param {string} email - User's email
+ * @param {string} otp - OTP code received via email
+ * @returns {Promise<{message: string}>}
+ */
+export async function verifyOtp(email, otp) {
+  const response = await api.post("/auth/verify-otp", { email, otp });
+  return response.data;
+}
+
+/**
+ * Login user and store JWT token + user info
+ * @param {string} email - User's email
+ * @param {string} password - User's password
+ * @returns {Promise<{message: string, token: string, user: {name: string, email: string}}>}
+ */
+export async function loginUser(email, password) {
+  const response = await api.post("/auth/login", { email, password });
+
+  if (response.data.token) {
+    localStorage.setItem("token", response.data.token);
+  }
+
+  if (response.data.user) {
+    localStorage.setItem("user", JSON.stringify(response.data.user));
+  }
+
+  return response.data;
+}
+
+/**
+ * Get stored user profile
+ * @returns {{name: string, email: string} | null}
+ */
+export function getUser() {
+  if (typeof window === "undefined") return null;
+  try {
+    const user = localStorage.getItem("user");
+    return user ? JSON.parse(user) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Logout user — clear stored token and user info
+ */
+export function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+}
+
+/**
+ * Check if user is authenticated
+ * @returns {boolean}
+ */
+export function isAuthenticated() {
+  if (typeof window === "undefined") return false;
+  return !!localStorage.getItem("token");
+}
