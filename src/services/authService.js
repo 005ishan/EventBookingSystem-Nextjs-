@@ -45,7 +45,7 @@ export async function loginUser(email, password) {
 
 /**
  * Get stored user profile
- * @returns {{name: string, email: string} | null}
+ * @returns {{name: string, email: string, profilePicture: string} | null}
  */
 export function getUser() {
   if (typeof window === "undefined") return null;
