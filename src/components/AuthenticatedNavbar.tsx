@@ -12,6 +12,9 @@ export default function AuthenticatedNavbar() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const user = getUser();
+  const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api").replace("/api", "");
+  const profilePicUrl = user?.profilePicture ? `${API_BASE}${user.profilePicture}` : null;
+
   const initials = user?.name
     ? user.name
         .split(" ")
@@ -76,9 +79,19 @@ export default function AuthenticatedNavbar() {
           className="flex items-center gap-2.5 py-2 pl-3 pr-4 rounded-lg  transition-all"
           onClick={() => setShowDropdown(!showDropdown)}
         >
-          {/* Avatar circle with initials */}   
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#4A7AFF] to-[#bcb6fc] flex items-center justify-center text-white text-xs font-bold">
-            {initials}
+          {/* Avatar circle with initials or profile picture */}   
+          <div className="w-8 h-8 rounded-full overflow-hidden">
+            {profilePicUrl ? (
+              <img
+                src={profilePicUrl}
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-[#4A7AFF] to-[#bcb6fc] flex items-center justify-center text-white text-xs font-bold">
+                {initials}
+              </div>
+            )}
           </div>
           <span className="text-[#E8E4DA] text-sm font-medium max-w-[100px] truncate">
             {user?.name || "User"}
