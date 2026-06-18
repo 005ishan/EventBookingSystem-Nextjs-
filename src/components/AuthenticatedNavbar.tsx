@@ -142,7 +142,7 @@ export default function AuthenticatedNavbar() {
                 className="flex items-center gap-3 w-full px-4 py-2.5 text-[#E8E4DA]/80 text-sm hover:bg-[#1A2040] transition-all text-left"
                 onClick={() => {
                   setShowDropdown(false);
-                  router.push("/tickets");
+                  router.push("/events/tickets");
                 }}
               >
                 <svg
