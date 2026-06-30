@@ -117,9 +117,9 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex flex-col bg-white h-screen">
+    <div className="flex flex-col bg-white min-h-screen">
       <div
-        className="self-stretch bg-[#0A0E1A] border border-solid border-black flex flex-col h-screen"
+        className="self-stretch bg-[#0A0E1A] border border-solid border-black flex flex-col min-h-screen"
         style={{ boxShadow: "0px 4px 4px #00000040" }}
       >
         <AuthenticatedNavbar />

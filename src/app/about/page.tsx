@@ -159,7 +159,6 @@ export default function AboutPage() {
               </div>
             </div>
           </div>
-
           <Footer />
         </div>
       </div>

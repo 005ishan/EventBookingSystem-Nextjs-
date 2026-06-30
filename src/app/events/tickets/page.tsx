@@ -144,9 +144,9 @@ export default function TicketsPage() {
   if (!checkedAuth) return null;
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#0A0E1A]">
-      <div className="flex-1">
-        <AuthenticatedNavbar />
+    <div className="min-h-screen bg-[#0A0E1A]">
+      <AuthenticatedNavbar />
+      <div>
         <div className="border-b border-gray-800 bg-[#0A0E1A]">
           <div className="max-w-[1500px] mx-auto px-8 pt-10 pb-6">
             <div className="mb-1">
@@ -312,9 +312,8 @@ export default function TicketsPage() {
             </div>
           </div>
         </div>
-
-        <Footer />
       </div>
+        <Footer />
     </div>
   );
 }
