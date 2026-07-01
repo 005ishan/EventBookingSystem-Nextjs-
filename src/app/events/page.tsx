@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AuthenticatedNavbar from "@/components/AuthenticatedNavbar";
 import Footer from "@/components/Footer";
 import { isAuthenticated } from "@/services/authService";
+import { getAllEvents } from "@/services/eventService";
+import { SkeletonEventCardGrid } from "@/components/Skeleton";
 
 interface Attendee {
   initial: string;
@@ -15,129 +17,17 @@ interface EventData {
   date: string;
   time: string;
   location: string;
+  category: string;
   title: string;
   description: string;
+  organizer: string;
+  createdById: string;
   attendees: Attendee[];
   count: string;
   image: string;
 }
 
-const events: EventData[] = [
-  {
-    date: "April 14 & 15",
-    time: "2:00 PM",
-    location: "Basantapur, Kathmandu",
-    title: "Nepal Tourism Festival",
-    description: "Many Tourists will be getting to know Nepal more from this event.",
-    attendees: [
-      { initial: "A", color: "#4A7AFF" },
-      { initial: "K", color: "#7A4AFF" },
-      { initial: "R", color: "#E44040" },
-    ],
-    count: "182",
-    image: "/img/nepaltourism2024.jpg",
-  },
-  {
-    date: "19 March",
-    time: "2:00 PM",
-    location: "Durbar Marg",
-    title: "Nepal Tour 2026",
-    description: "Albatross and Pahilo Batti Muni performing grab your tickets via esewa.",
-    attendees: [
-      { initial: "A", color: "#4A7AFF" },
-      { initial: "K", color: "#7A4AFF" },
-      { initial: "R", color: "#E44040" },
-    ],
-    count: "450",
-    image: "/img/Tastethe.png",
-  },
-  {
-    date: "Feb 04",
-    time: "2:00 PM",
-    location: "Bhuttandevi School Ground",
-    title: "Nepathya Nepal Tour",
-    description: "Nepathya will be around your hometown stay tuned.",
-    attendees: [
-      { initial: "A", color: "#4A7AFF" },
-      { initial: "K", color: "#7A4AFF" },
-      { initial: "R", color: "#E44040" },
-    ],
-    count: "808",
-    image: "/img/standupcomedy.png",
-  },
-  {
-    date: "Feb 10,21,22",
-    time: "2:00 PM",
-    location: "New Road",
-    title: "Second INDO-NEPAL Trade Festival",
-    description: "Many tradition themes to be performed so be there!!",
-    attendees: [
-      { initial: "A", color: "#4A7AFF" },
-      { initial: "K", color: "#7A4AFF" },
-      { initial: "R", color: "#E44040" },
-    ],
-    count: "503",
-    image: "/img/nepaltourism2024.jpg",
-  },
-  {
-    date: "May 05",
-    time: "6:00 PM",
-    location: "Patan Durbar Square",
-    title: "Lalitpur Cultural Night",
-    description: "Traditional music and dance performances under the stars.",
-    attendees: [
-      { initial: "S", color: "#4A7AFF" },
-      { initial: "P", color: "#7A4AFF" },
-      { initial: "M", color: "#E44040" },
-    ],
-    count: "234",
-    image: "/img/Tastethe.png",
-  },
-  {
-    date: "June 12-15",
-    time: "10:00 AM",
-    location: "Bhairahawa",
-    title: "Lumbini Peace Festival",
-    description: "Celebrate peace and harmony at the birthplace of Buddha.",
-    attendees: [
-      { initial: "D", color: "#4A7AFF" },
-      { initial: "L", color: "#7A4AFF" },
-      { initial: "T", color: "#E44040" },
-    ],
-    count: "320",
-    image: "/img/standupcomedy.png",
-  },
-  {
-    date: "July 08",
-    time: "3:00 PM",
-    location: "Chitwan",
-    title: "Jungle Safari Expo",
-    description: "Explore Nepal's wildlife and conservation efforts.",
-    attendees: [
-      { initial: "N", color: "#4A7AFF" },
-      { initial: "B", color: "#7A4AFF" },
-      { initial: "G", color: "#E44040" },
-    ],
-    count: "167",
-    image: "/img/nepaltourism2024.jpg",
-  },
-  {
-    date: "Aug 21-23",
-    time: "9:00 AM",
-    location: "Pokhara",
-    title: "Pokhara International Marathon",
-    description: "Run alongside the stunning Phewa Lake with the Annapurna range as your backdrop.",
-    attendees: [
-      { initial: "H", color: "#4A7AFF" },
-      { initial: "A", color: "#7A4AFF" },
-      { initial: "S", color: "#E44040" },
-    ],
-    count: "589",
-    image: "/img/Tastethe.png",
-  },
-];
-
-function EventCard({ event }: { event: EventData }) {
+function EventCard({ event, onOrganizerClick }: { event: EventData; onOrganizerClick: (id: string, name: string) => void }) {
   return (
     <div className="w-[312px] h-[335px] bg-[#0D1223] overflow-hidden rounded-[14px] outline outline-1 outline-offset-[-1px] outline-[rgba(255,255,255,0.08)] flex flex-col shrink-0">
       <div
@@ -164,6 +54,12 @@ function EventCard({ event }: { event: EventData }) {
           <h3 className="text-[#E8E4DA] text-base font-['Playfair_Display'] font-semibold leading-[20.80px]">
             {event.title}
           </h3>
+          <button
+            onClick={() => onOrganizerClick(event.createdById, event.organizer)}
+            className="text-[10px] font-[DM_Sans] text-[rgba(232,228,218,0.30)] leading-none mt-[6px] hover:text-[#7AAAFF] transition-colors text-left"
+          >
+            Event Organized by {event.organizer}
+          </button>
         </div>
         <p className="text-[12px] font-[DM_Sans] font-light leading-[19.20px] text-[rgba(232,228,218,0.38)]">
           {event.description}
@@ -202,9 +98,46 @@ function EventCard({ event }: { event: EventData }) {
   );
 }
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:5000";
+
+function formatDate(dateStr: string) {
+  const d = new Date(dateStr);
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+}
+
+function mapEvent(raw: any): EventData {
+  const organizerName =
+    raw.createdBy?.organizerName ||
+    raw.createdBy?.name ||
+    "Organizer";
+  return {
+    date: formatDate(raw.date),
+    time: raw.time || "",
+    location: raw.location || "",
+    category: raw.category || "Others",
+    title: raw.title,
+    description: raw.description,
+    organizer: organizerName,
+    createdById: raw.createdBy?._id || "",
+    attendees: [{ initial: organizerName.charAt(0).toUpperCase(), color: "#4A7AFF" }],
+    count: String(raw.totalSeats ?? 0),
+    image: raw.image ? `${API_BASE}${raw.image}` : "/img/nepaltourism2024.jpg",
+  };
+}
+
 export default function EventsPage() {
   const router = useRouter();
   const [checkedAuth, setCheckedAuth] = useState(false);
+  const [allEvents, setAllEvents] = useState<EventData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filterOrganizer, setFilterOrganizer] = useState<{ id: string; name: string } | null>(null);
+  const [searchText, setSearchText] = useState("");
+  const [organizerSearch, setOrganizerSearch] = useState("");
+  const [locationSearch, setLocationSearch] = useState("");
+  const [dateValue, setDateValue] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -214,6 +147,56 @@ export default function EventsPage() {
     }
   }, [router]);
 
+  const fetchEvents = useCallback(async () => {
+    if (!checkedAuth) return;
+    setLoading(true);
+    const params: Record<string, string> = {};
+    if (searchText) params.search = searchText;
+    if (dateValue) params.date = dateValue;
+    try {
+      const [data] = await Promise.all([
+        getAllEvents(params),
+        new Promise<void>((r) => setTimeout(r, 1500)),
+      ]);
+      const mapped: EventData[] = (data.events || []).map(mapEvent);
+      setAllEvents(mapped);
+      // Build category counts
+      const counts: Record<string, number> = {};
+      mapped.forEach((e: EventData) => {
+        counts[e.category] = (counts[e.category] || 0) + 1;
+      });
+      setCategoryCounts(counts);
+    } catch {}
+    setLoading(false);
+  }, [checkedAuth, searchText, dateValue]);
+
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
+
+  const events = allEvents.filter((e) => {
+    if (filterOrganizer && e.createdById !== filterOrganizer.id) return false;
+    if (organizerSearch && !e.organizer.toLowerCase().includes(organizerSearch.toLowerCase())) return false;
+    if (locationSearch && !e.location.toLowerCase().includes(locationSearch.toLowerCase())) return false;
+    if (categoryFilter && e.category !== categoryFilter) return false;
+    return true;
+  });
+
+  const handleOrganizerClick = (id: string, name: string) => {
+    setFilterOrganizer((prev) =>
+      prev?.id === id ? null : { id, name }
+    );
+  };
+
+  const clearFilters = () => {
+    setSearchText("");
+    setOrganizerSearch("");
+    setLocationSearch("");
+    setDateValue("");
+    setCategoryFilter("");
+    setFilterOrganizer(null);
+  };
+
   if (!checkedAuth) return null;
 
   return (
@@ -221,7 +204,7 @@ export default function EventsPage() {
       <AuthenticatedNavbar />
 
       <div className="flex" style={{ minHeight: "calc(100vh - 90px)" }}>
-        <aside className="w-[260px] shrink-0 bg-[#0D1223] border-r border-[rgba(255,255,255,0.07)] flex flex-col pt-7 pb-7 px-[22px] gap-7">
+        <aside className="w-[260px] shrink-0 bg-[#0D1223] border-r border-[rgba(255,255,255,0.07)] flex flex-col pt-7 pb-7 px-[22px] gap-5">
           <div className="flex flex-col gap-3">
             <span className="text-[11px] font-[DM_Sans] font-medium uppercase tracking-[1.20px] text-[rgba(232,228,218,0.35)]">
               Search
@@ -229,49 +212,92 @@ export default function EventsPage() {
             <div className="h-[38px] bg-[rgba(255,255,255,0.05)] rounded-[9px] outline outline-1 outline-offset-[-1px] outline-[rgba(255,255,255,0.10)] flex items-center pl-[36px] pr-3">
               <input
                 type="text"
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
                 placeholder="Search events..."
-                className="flex-1 bg-transparent text-[13px] font-[DM_Sans] text-[rgba(232,228,218,0.22)] placeholder:text-[rgba(232,228,218,0.22)] focus:outline-none"
+                className="flex-1 bg-transparent text-[13px] font-[DM_Sans] text-[#E8E4DA] placeholder:text-[rgba(232,228,218,0.22)] focus:outline-none"
               />
             </div>
           </div>
 
           <div className="h-[0.5px] bg-[rgba(255,255,255,0.06)]" />
-          <div className="h-[0.5px] bg-[rgba(255,255,255,0.06)]" />
-          <div className="h-[0.5px] bg-[rgba(255,255,255,0.06)]" />
 
           <div className="flex flex-col gap-3">
             <span className="text-[11px] font-[DM_Sans] font-medium uppercase tracking-[1.20px] text-[rgba(232,228,218,0.35)]">
-              Date range
+              Date
             </span>
-            <div className="flex flex-col gap-2">
-              <div className="h-9 bg-[rgba(255,255,255,0.05)] rounded-[8px] outline outline-1 outline-offset-[-1px] outline-[rgba(255,255,255,0.10)] flex items-center px-3">
-                <span className="flex-1 text-[12px] font-[DM_Sans] text-[rgba(232,228,218,0.60)]">
-                  05/18/2026
-                </span>
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <rect x="1.5" y="2.25" width="9" height="8.5" rx="1" stroke="currentColor" strokeWidth="0.75" fill="none" />
-                  <path d="M1.5 4.5H10.5" stroke="currentColor" strokeWidth="0.75" />
-                  <rect x="3" y="1.5" width="0.75" height="1.5" rx="0.375" fill="currentColor" />
-                  <rect x="8.25" y="1.5" width="0.75" height="1.5" rx="0.375" fill="currentColor" />
-                </svg>
-              </div>
-              <div className="h-9 bg-[rgba(255,255,255,0.05)] rounded-[8px] outline outline-1 outline-offset-[-1px] outline-[rgba(255,255,255,0.10)] flex items-center px-3">
-                <span className="flex-1 text-[12px] font-[DM_Sans] text-[rgba(232,228,218,0.60)]">
-                  05/31/2026
-                </span>
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <rect x="1.5" y="2.25" width="9" height="8.5" rx="1" stroke="currentColor" strokeWidth="0.75" fill="none" />
-                  <path d="M1.5 4.5H10.5" stroke="currentColor" strokeWidth="0.75" />
-                  <rect x="3" y="1.5" width="0.75" height="1.5" rx="0.375" fill="currentColor" />
-                  <rect x="8.25" y="1.5" width="0.75" height="1.5" rx="0.375" fill="currentColor" />
-                </svg>
-              </div>
+            <div className="h-[38px] bg-[rgba(255,255,255,0.05)] rounded-[9px] outline outline-1 outline-offset-[-1px] outline-[rgba(255,255,255,0.10)] flex items-center px-3">
+              <input
+                type="date"
+                value={dateValue}
+                onChange={(e) => setDateValue(e.target.value)}
+                className="flex-1 bg-transparent text-[13px] font-[DM_Sans] text-[rgba(232,228,218,0.60)] focus:outline-none [color-scheme:dark]"
+              />
             </div>
           </div>
 
           <div className="h-[0.5px] bg-[rgba(255,255,255,0.06)]" />
 
-          <button className="h-9 rounded-[9px] outline outline-1 outline-offset-[-1px] outline-[rgba(255,255,255,0.10)] flex items-center justify-center hover:bg-[rgba(255,255,255,0.03)] transition-all">
+          <div className="flex flex-col gap-3">
+            <span className="text-[11px] font-[DM_Sans] font-medium uppercase tracking-[1.20px] text-[rgba(232,228,218,0.35)]">
+              Organizer
+            </span>
+            <div className="h-[38px] bg-[rgba(255,255,255,0.05)] rounded-[9px] outline outline-1 outline-offset-[-1px] outline-[rgba(255,255,255,0.10)] flex items-center pl-[36px] pr-3">
+              <input
+                type="text"
+                value={organizerSearch}
+                onChange={(e) => setOrganizerSearch(e.target.value)}
+                placeholder="Search organizer..."
+                className="flex-1 bg-transparent text-[13px] font-[DM_Sans] text-[#E8E4DA] placeholder:text-[rgba(232,228,218,0.22)] focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="h-[0.5px] bg-[rgba(255,255,255,0.06)]" />
+
+          <div className="flex flex-col gap-3">
+            <span className="text-[11px] font-[DM_Sans] font-medium uppercase tracking-[1.20px] text-[rgba(232,228,218,0.35)]">
+              Location
+            </span>
+            <div className="h-[38px] bg-[rgba(255,255,255,0.05)] rounded-[9px] outline outline-1 outline-offset-[-1px] outline-[rgba(255,255,255,0.10)] flex items-center pl-[36px] pr-3">
+              <input
+                type="text"
+                value={locationSearch}
+                onChange={(e) => setLocationSearch(e.target.value)}
+                placeholder="Search location..."
+                className="flex-1 bg-transparent text-[13px] font-[DM_Sans] text-[#E8E4DA] placeholder:text-[rgba(232,228,218,0.22)] focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="h-[0.5px] bg-[rgba(255,255,255,0.06)]" />
+
+          <div className="flex flex-col gap-3">
+            <span className="text-[11px] font-[DM_Sans] font-medium uppercase tracking-[1.20px] text-[rgba(232,228,218,0.35)]">
+              Category
+            </span>
+            <div className="h-[38px] bg-[rgba(255,255,255,0.05)] rounded-[9px] outline outline-1 outline-offset-[-1px] outline-[rgba(255,255,255,0.10)] flex items-center px-3">
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="flex-1 bg-transparent text-[13px] font-[DM_Sans] text-[#E8E4DA] focus:outline-none [color-scheme:dark]"
+              >
+                <option value="" className="bg-[#0D1223]">All Categories</option>
+                {["Festival", "Concert", "Social", "Charity", "Others"].map((cat) => (
+                <option key={cat} value={cat} className="bg-[#0D1223]">
+                  {cat} {categoryCounts[cat] !== undefined ? `(${categoryCounts[cat]})` : ""}
+                </option>
+              ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="h-[0.5px] bg-[rgba(255,255,255,0.06)]" />
+
+          <button
+            onClick={clearFilters}
+            className="h-9 rounded-[9px] outline outline-1 outline-offset-[-1px] outline-[rgba(255,255,255,0.10)] flex items-center justify-center hover:bg-[rgba(255,255,255,0.03)] transition-all"
+          >
             <span className="text-[13px] font-[DM_Sans] text-[rgba(232,228,218,0.40)]">
               Clear all filters
             </span>
@@ -285,15 +311,35 @@ export default function EventsPage() {
               <span className="text-[#4A7AFF] italic">Events</span>
             </h1>
             <p className="text-[13px] font-[DM_Sans] text-[rgba(232,228,218,0.35)] mt-1">
-              Showing {events.length} of {events.length} events
+              {loading
+                ? "Fetching events..."
+                : filterOrganizer
+                  ? `Showing ${events.length} event${events.length !== 1 ? "s" : ""} by ${filterOrganizer.name}`
+                  : searchText || dateValue || organizerSearch || locationSearch || categoryFilter
+                    ? `Showing ${events.length} of ${allEvents.length} event${allEvents.length !== 1 ? "s" : ""}`
+                    : `Showing ${allEvents.length} event${allEvents.length !== 1 ? "s" : ""}`}
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-6">
-            {events.map((event, i) => (
-              <EventCard key={i} event={event} />
-            ))}
-          </div>
+          {loading ? (
+            <SkeletonEventCardGrid count={6} />
+          ) : events.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-gray-400 text-sm">
+                {filterOrganizer
+                  ? `No events found by ${filterOrganizer.name}.`
+                  : searchText || dateValue || organizerSearch || locationSearch || categoryFilter
+                    ? "No events match your filters. Try adjusting them."
+                    : "No events found. Create one to get started!"}
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-6">
+              {events.map((event, i) => (
+                <EventCard key={i} event={event} onOrganizerClick={handleOrganizerClick} />
+              ))}
+            </div>
+          )}
         </div>
       </div>
       <div className="pt-12"><Footer /></div>

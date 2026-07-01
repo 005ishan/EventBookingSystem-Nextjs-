@@ -13,9 +13,13 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [passwordStrength, setPasswordStrength] = useState<{ score: number; label: string; color: string }>({
+    score: 0,
+    label: "",
+    color: "bg-gray-600",
+  });
   const [loading, setLoading] = useState(false);
 
-  // OTP verification state
   const [showOtp, setShowOtp] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpLoading, setOtpLoading] = useState(false);
@@ -23,7 +27,6 @@ export default function SignupPage() {
   async function handleSignup() {
     setError("");
 
-    // Client-side validation
     if (!firstName || !lastName || !email || !password || !confirmPassword) {
       setError("All fields are required");
       return;
@@ -72,7 +75,6 @@ export default function SignupPage() {
     }
   }
 
-  // If OTP step is active, show OTP verification UI instead
   if (showOtp) {
     return (
       <div className="min-h-screen bg-[#0A0E1A] flex items-center justify-center px-4">
@@ -100,7 +102,6 @@ export default function SignupPage() {
             </p>
           </div>
 
-          {/* Error message */}
           {error && (
             <div className="mb-4 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-xl p-3 text-center">
               {error}
@@ -152,7 +153,6 @@ export default function SignupPage() {
     );
   }
 
-  // Signup form (default view)
   return (
     <div className="min-h-screen bg-[#0A0E1A] flex items-center justify-center px-4">
       <div className="relative w-[575px] bg-[#10152A] rounded-2xl px-[52px] pt-12 pb-10 border border-white/10 shadow-2xl">
@@ -179,7 +179,6 @@ export default function SignupPage() {
           </p>
         </div>
 
-        {/* Error message */}
         {error && (
           <div className="mb-4 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-xl p-3 text-center">
             {error}
@@ -292,11 +291,45 @@ export default function SignupPage() {
             <input
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                const pwd = e.target.value;
+                let score = 0;
+                if (pwd.length >= 6) score += 20;
+                if (pwd.length >= 10) score += 20;
+                if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) score += 20;
+                if (/[0-9]/.test(pwd)) score += 20;
+                if (/[^a-zA-Z0-9]/.test(pwd)) score += 20;
+                const strengthMap: Record<string, { label: string; color: string }> = {
+                  "0": { label: "", color: "bg-gray-600" },
+                  "20": { label: "Weak", color: "bg-red-500" },
+                  "40": { label: "Fair", color: "bg-orange-500" },
+                  "60": { label: "Good", color: "bg-yellow-500" },
+                  "80": { label: "Strong", color: "bg-lime-500" },
+                  "100": { label: "Very strong", color: "bg-green-500" },
+                };
+                const key = String(Math.min(100, Math.ceil(score / 20) * 20));
+                setPasswordStrength({ score, ...strengthMap[key] });
+              }}
               placeholder="Create a strong password"
               className="w-full h-[46px] bg-white/5 rounded-[10px] border border-white/12 pl-[42px] pr-[14px] text-sm text-[#E8E4DA]/25 placeholder:text-[#E8E4DA]/25 focus:text-[#E8E4DA] focus:outline-none focus:border-[#4A7AFF]/50 transition-all"
             />
           </div>
+          {password && (
+            <div className="mt-2 flex items-center gap-2">
+              <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-300 ${passwordStrength.color}`}
+                  style={{ width: `${passwordStrength.score}%` }}
+                />
+              </div>
+              {passwordStrength.label && (
+                <span className="text-[10px] font-medium text-gray-400 shrink-0">
+                  {passwordStrength.label}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="mb-6">

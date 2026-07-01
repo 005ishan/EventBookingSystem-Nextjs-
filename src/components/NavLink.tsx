@@ -2,7 +2,13 @@
 
 import { useRouter } from "next/navigation";
 
-export default function NavLink({ text, isActive, href }: any) {
+interface NavLinkProps {
+  text: string;
+  isActive: boolean;
+  href: string;
+}
+
+export default function NavLink({ text, isActive, href }: NavLinkProps) {
   const router = useRouter();
 
   return (

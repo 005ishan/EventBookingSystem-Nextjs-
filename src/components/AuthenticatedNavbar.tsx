@@ -24,7 +24,6 @@ export default function AuthenticatedNavbar() {
         .slice(0, 2)
     : "U";
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (
@@ -79,7 +78,6 @@ export default function AuthenticatedNavbar() {
           className="flex items-center gap-2.5 py-2 pl-3 pr-4 rounded-lg  transition-all"
           onClick={() => setShowDropdown(!showDropdown)}
         >
-          {/* Avatar circle with initials or profile picture */}   
           <div className="w-8 h-8 rounded-full overflow-hidden">
             {profilePicUrl ? (
               <img
@@ -96,7 +94,6 @@ export default function AuthenticatedNavbar() {
           <span className="text-[#E8E4DA] text-sm font-medium max-w-[100px] truncate">
             {user?.name || "User"}
           </span>
-          {/* Dropdown chevron */}
           <svg
             className={`w-4 h-4 text-[#E8E4DA]/60 transition-transform duration-200 ${
               showDropdown ? "rotate-180" : ""
@@ -114,10 +111,8 @@ export default function AuthenticatedNavbar() {
           </svg>
         </button>
 
-        {/* Dropdown menu */}
         {showDropdown && (
           <div className="absolute top-full right-0 mt-2 w-56 bg-[#151B2B] rounded-xl border border-[#FFFFFF1A] shadow-2xl overflow-hidden z-50">
-            {/* User info header */}
             <div className="px-4 py-3 border-b border-[#FFFFFF0D]">
               <p className="text-[#E8E4DA] text-sm font-medium truncate">
                 {user?.name || "User"}
@@ -127,7 +122,6 @@ export default function AuthenticatedNavbar() {
               </p>
             </div>
 
-            {/* Menu items */}
             <div className="py-1">
               <button
                 className="flex items-center gap-3 w-full px-4 py-2.5 text-[#E8E4DA]/80 text-sm hover:bg-[#1A2040] transition-all text-left"
@@ -197,7 +191,6 @@ export default function AuthenticatedNavbar() {
               </button>
             </div>
 
-            {/* Logout */}
             <div className="border-t border-[#FFFFFF0D] py-1">
               <button
                 className="flex items-center gap-3 w-full px-4 py-2.5 text-[#FF4B4B]/80 text-sm hover:bg-[#1A2040] hover:text-[#FF4B4B] transition-all text-left"

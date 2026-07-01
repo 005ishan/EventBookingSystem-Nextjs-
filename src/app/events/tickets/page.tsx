@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import AuthenticatedNavbar from "@/components/AuthenticatedNavbar";
 import Footer from "@/components/Footer";
+import Skeleton from "@/components/Skeleton";
 import { isAuthenticated } from "@/services/authService";
 
 interface Ticket {
@@ -96,6 +97,7 @@ const statusStyles: Record<string, string> = {
 export default function TicketsPage() {
   const router = useRouter();
   const [checkedAuth, setCheckedAuth] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All status");
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
@@ -122,6 +124,8 @@ export default function TicketsPage() {
       router.push("/auth/login");
     } else {
       setCheckedAuth(true);
+      const timer = setTimeout(() => setLoading(false), 1500);
+      return () => clearTimeout(timer);
     }
   }, [router]);
 
@@ -141,7 +145,40 @@ export default function TicketsPage() {
     safePage * perPage
   );
 
-  if (!checkedAuth) return null;
+  if (!checkedAuth || loading) {
+    return (
+      <div className="min-h-screen bg-[#0A0E1A]">
+        <AuthenticatedNavbar />
+        <div className="max-w-[1500px] mx-auto px-8 py-10">
+          <Skeleton variant="text" lines={2} className="mb-6" />
+          <div className="bg-[#151B2B] rounded-xl border border-gray-700 overflow-hidden">
+            <div className="flex border-b border-gray-700 px-5 py-3.5 gap-6">
+              <Skeleton variant="rect" height="h-3" className="flex-1" />
+              <Skeleton variant="rect" height="h-3" className="w-52" />
+              <Skeleton variant="rect" height="h-3" className="w-28" />
+              <Skeleton variant="rect" height="h-3" className="w-40" />
+              <Skeleton variant="rect" height="h-3" className="w-16" />
+            </div>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex border-b border-gray-800 px-5 py-4 gap-6">
+                <div className="flex-1 flex items-center gap-3">
+                  <Skeleton variant="rect" height="h-9 w-9 rounded-[10px]" />
+                  <div className="flex-1 flex flex-col gap-1">
+                    <Skeleton variant="rect" height="h-4 w-3/4" />
+                    <Skeleton variant="rect" height="h-3" />
+                  </div>
+                </div>
+                <Skeleton variant="rect" height="h-6 w-52" />
+                <Skeleton variant="rect" height="h-4 w-28" />
+                <Skeleton variant="rect" height="h-4 w-40" />
+                <Skeleton variant="rect" height="h-6 w-20" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0A0E1A]">

@@ -1,41 +1,40 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ChangeEvent, type FormEvent } from "react";
 import Navbar from "@/components/Navbar";
 import AuthenticatedNavbar from "@/components/AuthenticatedNavbar";
 import Footer from "@/components/Footer";
+import { SkeletonPublicPage } from "@/components/Skeleton";
 import { isAuthenticated } from "@/services/authService";
 
 export default function ContactPage() {
+  const [loading, setLoading] = useState(true);
   const [loggedIn, setLoggedIn] = useState(false);
-
-  useEffect(() => {
-    setLoggedIn(isAuthenticated());
-  }, []);
-
-  // Form state
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     subject: "",
     message: "",
   });
-
-  // Track if form was submitted
   const [submitted, setSubmitted] = useState(false);
 
-  // Handle input changes
-  function handleChange(e: any, field: string) {
+  useEffect(() => {
+    setLoggedIn(isAuthenticated());
+    const timer = setTimeout(() => setLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  function handleChange(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: string) {
     setFormData({ ...formData, [field]: e.target.value });
   }
 
-  // Handle form submit
-  function handleSubmit(e: any) {
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSubmitted(true);
-    // Reset form
     setFormData({ name: "", email: "", subject: "", message: "" });
   }
+
+  if (loading) return <SkeletonPublicPage />;
 
   return (
     <div className="flex flex-col bg-white min-h-screen">
@@ -46,17 +45,14 @@ export default function ContactPage() {
         {loggedIn ? <AuthenticatedNavbar /> : <Navbar />}
 
         <div className="flex-1 overflow-y-auto">
-          {/* ========== HERO SECTION ========== */}
           <section className="self-stretch pb-10">
             <div className="flex flex-col items-center max-w-[1150px] pt-20 pb-14 px-6 mx-auto gap-6">
-              {/* Badge */}
               <div className="flex items-center bg-[#4A7AFF]/10 py-1 px-5 gap-2 rounded-full border border-[#4A7AFF]/30">
                 <span className="text-[#4A7AFF] text-xs font-medium tracking-wide">
                   Get in touch
                 </span>
               </div>
 
-              {/* Heading */}
               <div className="flex flex-col items-center max-w-[650px]">
                 <h1 className="text-center text-[#E8E4DA] text-5xl md:text-6xl font-bold leading-[1.1]">
                   We&apos;d love to hear{" "}
@@ -66,7 +62,6 @@ export default function ContactPage() {
                 </h1>
               </div>
 
-              {/* Description */}
               <div className="max-w-[500px] text-center">
                 <p className="text-[#E4BDBA] text-base leading-7">
                   Have a question, feedback, or want to partner with us?
@@ -76,14 +71,12 @@ export default function ContactPage() {
             </div>
           </section>
 
-          {/* ========== CONTACT FORM (Centered) ========== */}
           <section className="max-w-[800px] mx-auto px-6 pt-5 pb-16">
             <div className="bg-[#151B2B] rounded-2xl border border-white/10 p-8">
               <h2 className="text-[#E8E4DA] text-2xl font-bold mb-6 text-center">
                 Send us a message
               </h2>
 
-              {/* Show success message */}
               {submitted && (
                 <div className="bg-green-500/10 border border-green-500/30 text-green-400 text-sm rounded-xl p-4 mb-6">
                   ✅ Thanks! Your message has been sent. We&apos;ll get back to you soon.
@@ -91,7 +84,6 @@ export default function ContactPage() {
               )}
 
               <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-                {/* Name + Email row */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex flex-col gap-2">
                     <label className="text-[#E8E4DA]/70 text-sm">Your Name</label>
@@ -116,7 +108,6 @@ export default function ContactPage() {
                   </div>
                 </div>
 
-                {/* Subject */}
                 <div className="flex flex-col gap-2">
                   <label className="text-[#E8E4DA]/70 text-sm">Subject</label>
                   <input
@@ -128,7 +119,6 @@ export default function ContactPage() {
                   />
                 </div>
 
-                {/* Message */}
                 <div className="flex flex-col gap-2">
                   <label className="text-[#E8E4DA]/70 text-sm">Message</label>
                   <textarea
@@ -141,7 +131,6 @@ export default function ContactPage() {
                   />
                 </div>
 
-                {/* Submit button */}
                 <button
                   type="submit"
                   className="bg-[#4A7AFF] text-white text-sm font-medium py-3 px-8 rounded-[10px] hover:bg-[#3A6AEF] transition-all w-full"

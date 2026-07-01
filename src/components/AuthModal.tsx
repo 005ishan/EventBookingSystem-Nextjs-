@@ -1,15 +1,16 @@
 "use client";
 
+import { type MouseEvent } from "react";
 import { useRouter } from "next/navigation";
 
-export default function AuthModal({ onClose }: any) {
+export default function AuthModal({ onClose }: { onClose: () => void }) {
   const router = useRouter();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
       onClick={onClose}>
       <div className="bg-[#151B2B] rounded-lg pt-6 px-8 pb-8 max-w-sm w-full mx-4 border border-[#1A2040]"
-        onClick={(e: any) => e.stopPropagation()}>
+        onClick={(e: MouseEvent) => e.stopPropagation()}>
         <div className="flex justify-end">
           <button className="text-gray-500 hover:text-gray-300 text-lg leading-none" onClick={onClose}>✕</button>
         </div>

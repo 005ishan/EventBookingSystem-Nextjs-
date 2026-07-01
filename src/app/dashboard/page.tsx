@@ -1,23 +1,25 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, type TouchEvent, type MouseEvent } from "react";
 import { useRouter } from "next/navigation";
 import AuthenticatedNavbar from "@/components/AuthenticatedNavbar";
 import EventCard from "@/components/EventCard";
 import Footer from "@/components/Footer";
+import BookingModal from "@/components/BookingModal";
+import { SkeletonAuthenticatedPage } from "@/components/Skeleton";
 import { isAuthenticated } from "@/services/authService";
 
 export default function DashboardPage() {
   const router = useRouter();
   const [currentFeatured, setCurrentFeatured] = useState(0);
   const [checkedAuth, setCheckedAuth] = useState(false);
+  const [bookingEvent, setBookingEvent] = useState<{ title: string; price: string } | null>(null);
 
-  const touchStartX: any = useRef(null);
-  const touchEndX: any = useRef(null);
-  const mouseDownX: any = useRef(null);
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
+  const mouseDownX = useRef<number | null>(null);
   const minSwipe = 50;
 
-  // Auth guard — redirect to login if not authenticated
   useEffect(() => {
     if (!isAuthenticated()) {
       router.push("/auth/login");
@@ -26,7 +28,7 @@ export default function DashboardPage() {
     }
   }, [router]);
 
-  function handleSwipe(dist: any) {
+  function handleSwipe(dist: number) {
     if (dist > minSwipe && currentFeatured < 2) {
       setCurrentFeatured(currentFeatured + 1);
     } else if (dist < -minSwipe && currentFeatured > 0) {
@@ -34,12 +36,12 @@ export default function DashboardPage() {
     }
   }
 
-  function onTouchStart(e: any) {
+  function onTouchStart(e: TouchEvent<HTMLDivElement>) {
     touchEndX.current = null;
     touchStartX.current = e.targetTouches[0].clientX;
   }
 
-  function onTouchMove(e: any) {
+  function onTouchMove(e: TouchEvent<HTMLDivElement>) {
     touchEndX.current = e.targetTouches[0].clientX;
   }
 
@@ -48,11 +50,11 @@ export default function DashboardPage() {
     handleSwipe(touchStartX.current - touchEndX.current);
   }
 
-  function onMouseDown(e: any) {
+  function onMouseDown(e: MouseEvent<HTMLDivElement>) {
     mouseDownX.current = e.clientX;
   }
 
-  function onMouseUp(e: any) {
+  function onMouseUp(e: MouseEvent<HTMLDivElement>) {
     if (mouseDownX.current === null) return;
     handleSwipe(mouseDownX.current - e.clientX);
     mouseDownX.current = null;
@@ -71,8 +73,20 @@ export default function DashboardPage() {
     return () => clearInterval(interval);
   }, [currentFeatured]);
 
-  function bookEvent() {
-    alert("Booking feature coming soon!");
+  function bookEvent(title?: string, price?: string) {
+    if (title && price) {
+      setBookingEvent({ title, price });
+    } else {
+      // If no specific event, use the current featured event
+      const featured = events[currentFeatured];
+      const prices = ["Rs. 1,200", "Rs. 800", "Rs. 500"];
+      setBookingEvent({ title: featured.title, price: prices[currentFeatured] || "Rs. 500" });
+    }
+  }
+
+  function handleBookingConfirm(qty: number) {
+    alert(`✅ Booked ${qty} ticket${qty > 1 ? "s" : ""} for "${bookingEvent?.title}"!`);
+    setBookingEvent(null);
   }
 
   const events = [
@@ -82,6 +96,7 @@ export default function DashboardPage() {
       btn1: "Book Now",
       btn2: "Event Details",
       img: "/img/nepaltourism2024.jpg",
+      organizer: "Nepal Tourism Board",
     },
     {
       title: "Sabin Rai & The Pharaoh ft. Daju Vai Kutumba",
@@ -89,6 +104,7 @@ export default function DashboardPage() {
       btn1: "Get Tickets",
       btn2: "Event Details",
       img: "/img/Tastethe.png",
+      organizer: "Ticket Sanjal",
     },
     {
       title: "Stand Up Comedy Night ft. Aayush Shrestha & Babin Karki",
@@ -96,24 +112,24 @@ export default function DashboardPage() {
       btn1: "Get Tickets",
       btn2: "Event Details",
       img: "/img/standupcomedy.png",
+      organizer: "Ticket Sanjal",
     },
   ];
 
   const liveCards = [
-    { img: "/img/Tastethe.png", title: "Kathmandu Jazz & Blues Night", price: "Rs. 1,200", desc: "MUSIC • LIVE JAZZ • Nepal's finest jazz\nartists performing at The Moksh Bar", btn: "Book Now", date: "LIVE NOW" },
-    { img: "/img/standupcomedy.png", title: "Comedy Night ft. Aayush & Babin", price: "Rs. 800", desc: "COMEDY • STAND-UP • Non-stop laughter\nwith Nepal's top comedians live!", btn: "Get Ticket", date: "LIVE NOW" },
-    { img: "/img/nepaltourism2024.jpg", title: "Nepal Heritage Expo 2024", price: "Rs. 500", desc: "CULTURE • ART • TRADITION • Experience\nNepal's rich heritage under one roof", btn: "Join Now", date: "LIVE NOW" },
+    { img: "/img/Tastethe.png", title: "Kathmandu Jazz & Blues Night", price: "Rs. 1,200", desc: "MUSIC • LIVE JAZZ • Nepal's finest jazz\nartists performing at The Moksh Bar", btn: "Book Now", date: "LIVE NOW", organizer: "The Moksh Bar" },
+    { img: "/img/standupcomedy.png", title: "Comedy Night ft. Aayush & Babin", price: "Rs. 800", desc: "COMEDY • STAND-UP • Non-stop laughter\nwith Nepal's top comedians live!", btn: "Get Ticket", date: "LIVE NOW", organizer: "Ticket Sanjal" },
+    { img: "/img/nepaltourism2024.jpg", title: "Nepal Heritage Expo 2024", price: "Rs. 500", desc: "CULTURE • ART • TRADITION • Experience\nNepal's rich heritage under one roof", btn: "Join Now", date: "LIVE NOW", organizer: "Heritage Nepal" },
   ];
 
   const upcomingCards = [
-    { img: "/img/Tastethe.png", title: "Pokhara Lake Side Music Fest", price: "Rs. 1,500", desc: "MUSIC • OUTDOOR • Weekend concert\nseries by the serene Phewa Lake in Pokhara", btn: "Reserve Spot", date: "NOV 5 • 4:00 PM" },
-    { img: "/img/nepaltourism2024.jpg", title: "Himalayan Food & Culture Fest", price: "Rs. 1,000", desc: "FOOD • CULTURE • Authentic Nepali cuisine,\ntraditional dances & local artisan stalls", btn: "Get Tickets", date: "NOV 12 • 10:00 AM" },
-    { img: "/img/standupcomedy.png", title: "Laugh Nepal: Comedy Special", price: "Rs. 600", desc: "COMEDY • LIVE SHOW • An evening of\nhilarious stand-up with Nepal's funniest", btn: "Join Guestlist", date: "NOV 19 • 7:00 PM" },
+    { img: "/img/Tastethe.png", title: "Pokhara Lake Side Music Fest", price: "Rs. 1,500", desc: "MUSIC • OUTDOOR • Weekend concert\nseries by the serene Phewa Lake in Pokhara", btn: "Reserve Spot", date: "NOV 5 • 4:00 PM", organizer: "Pokhara Events" },
+    { img: "/img/nepaltourism2024.jpg", title: "Himalayan Food & Culture Fest", price: "Rs. 1,000", desc: "FOOD • CULTURE • Authentic Nepali cuisine,\ntraditional dances & local artisan stalls", btn: "Get Tickets", date: "NOV 12 • 10:00 AM", organizer: "Nepal Tourism Board" },
+    { img: "/img/standupcomedy.png", title: "Laugh Nepal: Comedy Special", price: "Rs. 600", desc: "COMEDY • LIVE SHOW • An evening of\nhilarious stand-up with Nepal's funniest", btn: "Join Guestlist", date: "NOV 19 • 7:00 PM", organizer: "Laugh Nepal" },
   ];
 
-  // Don't render anything until auth check completes
   if (!checkedAuth) {
-    return null;
+    return <SkeletonAuthenticatedPage />;
   }
 
   return (
@@ -155,6 +171,9 @@ export default function DashboardPage() {
                       </div>
                       <div className="flex flex-col items-start pt-2 pr-[332px] mx-16">
                         <span className="text-white text-base">{event.title}</span>
+                        {event.organizer && (
+                          <span className="text-[#E4BDBA]/50 text-xs mt-1">by {event.organizer}</span>
+                        )}
                       </div>
                       <p className="text-[#E4BDBA] text-base w-[539px] ml-16 whitespace-pre-line">{event.desc}</p>
                       <div className="flex items-start pt-4 ml-16">
@@ -193,7 +212,7 @@ export default function DashboardPage() {
               </div>
               <div className="flex items-center self-stretch gap-[33px]">
                 {liveCards.map((card, i) => (
-                  <EventCard key={i} {...card} onAction={bookEvent} />
+                  <EventCard key={i} {...card} onAction={() => bookEvent(card.title, card.price)} />
                 ))}
               </div>
             </section>
@@ -204,7 +223,7 @@ export default function DashboardPage() {
               </div>
               <div className="flex items-center self-stretch gap-[33px]">
                 {upcomingCards.map((card, i) => (
-                  <EventCard key={i} {...card} onAction={bookEvent} />
+                  <EventCard key={i} {...card} onAction={() => bookEvent(card.title, card.price)} />
                 ))}
               </div>
               <div className="flex flex-col items-center self-stretch pt-4">
@@ -220,6 +239,15 @@ export default function DashboardPage() {
           <Footer />
         </div>
       </div>
+      {bookingEvent && (
+        <BookingModal
+          open={!!bookingEvent}
+          onClose={() => setBookingEvent(null)}
+          eventTitle={bookingEvent.title}
+          eventPrice={bookingEvent.price}
+          onConfirm={handleBookingConfirm}
+        />
+      )}
     </div>
   );
 }

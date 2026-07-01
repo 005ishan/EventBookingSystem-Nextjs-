@@ -1,6 +1,17 @@
 "use client";
 
-export default function EventCard({ img, title, price, desc, btn, onAction, date }: any) {
+interface EventCardProps {
+  img: string;
+  title: string;
+  price: string;
+  desc: string;
+  btn: string;
+  onAction: () => void;
+  date: string;
+  organizer?: string;
+}
+
+export default function EventCard({ img, title, price, desc, btn, onAction, date, organizer }: EventCardProps) {
   return (
     <div className="flex-1 bg-[#242A3A] rounded-3xl hover:bg-[#2A3042]" style={{ boxShadow: "0px 8px 10px #0000001A" }}>
       <div
@@ -13,8 +24,13 @@ export default function EventCard({ img, title, price, desc, btn, onAction, date
       </div>
       <div className="flex flex-col self-stretch p-6 gap-4">
         <div className="flex justify-between items-center self-stretch">
-          <span className="text-white text-base">{title}</span>
-          <span className="text-[#FF4B4B] text-base font-bold">{price}</span>
+          <div className="flex flex-col">
+            <span className="text-white text-base">{title}</span>
+            {organizer && (
+              <span className="text-[#E4BDBA]/60 text-xs mt-1">by {organizer}</span>
+            )}
+          </div>
+          <span className="text-[#FF4B4B] text-base font-bold shrink-0 ml-4">{price}</span>
         </div>
         <p className="text-[#E4BDBA] text-sm whitespace-pre-line">{desc}</p>
         <button
