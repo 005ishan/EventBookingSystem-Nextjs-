@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import FooterLink from "@/components/FooterLink";
+import { useToast } from "@/components/Toast";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
+  const { showToast } = useToast();
 
   return (
     <footer className="bg-[#151B2B] pt-[81px]">
@@ -47,7 +49,17 @@ export default function Footer() {
             <input placeholder="Email address" value={email}
               onChange={(e: any) => setEmail(e.target.value)}
               className="self-stretch text-gray-500 bg-[#242A3A] text-sm py-3.5 px-[17px] rounded-xl border border-solid border-[#2F344580] focus:outline-none focus:border-[#4A7AFF]" />
-            <button className="flex flex-col items-center self-stretch bg-[#FF4B4B] text-left py-3 rounded-xl border-0 hover:bg-[#E03B3B]">
+            <button
+              onClick={() => {
+                if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                  showToast("Please enter a valid email address", "error");
+                  return;
+                }
+                showToast("Subscribed to newsletter! 🎉", "success");
+                setEmail("");
+              }}
+              className="flex flex-col items-center self-stretch bg-[#FF4B4B] text-left py-3 rounded-xl border-0 hover:bg-[#E03B3B]"
+            >
               <span className="text-white text-base font-bold">Subscribe</span>
             </button>
           </div>
