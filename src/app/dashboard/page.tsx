@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, type TouchEvent, type MouseEvent } from "react";
 import { useRouter } from "next/navigation";
 import AuthenticatedNavbar from "@/components/AuthenticatedNavbar";
 import EventCard from "@/components/EventCard";
@@ -15,9 +15,9 @@ export default function DashboardPage() {
   const [checkedAuth, setCheckedAuth] = useState(false);
   const [bookingEvent, setBookingEvent] = useState<{ title: string; price: string } | null>(null);
 
-  const touchStartX: any = useRef(null);
-  const touchEndX: any = useRef(null);
-  const mouseDownX: any = useRef(null);
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
+  const mouseDownX = useRef<number | null>(null);
   const minSwipe = 50;
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export default function DashboardPage() {
     }
   }, [router]);
 
-  function handleSwipe(dist: any) {
+  function handleSwipe(dist: number) {
     if (dist > minSwipe && currentFeatured < 2) {
       setCurrentFeatured(currentFeatured + 1);
     } else if (dist < -minSwipe && currentFeatured > 0) {
@@ -36,12 +36,12 @@ export default function DashboardPage() {
     }
   }
 
-  function onTouchStart(e: any) {
+  function onTouchStart(e: TouchEvent<HTMLDivElement>) {
     touchEndX.current = null;
     touchStartX.current = e.targetTouches[0].clientX;
   }
 
-  function onTouchMove(e: any) {
+  function onTouchMove(e: TouchEvent<HTMLDivElement>) {
     touchEndX.current = e.targetTouches[0].clientX;
   }
 
@@ -50,11 +50,11 @@ export default function DashboardPage() {
     handleSwipe(touchStartX.current - touchEndX.current);
   }
 
-  function onMouseDown(e: any) {
+  function onMouseDown(e: MouseEvent<HTMLDivElement>) {
     mouseDownX.current = e.clientX;
   }
 
-  function onMouseUp(e: any) {
+  function onMouseUp(e: MouseEvent<HTMLDivElement>) {
     if (mouseDownX.current === null) return;
     handleSwipe(mouseDownX.current - e.clientX);
     mouseDownX.current = null;

@@ -59,7 +59,7 @@ function EventCard({ event, onOrganizerClick }: { event: EventData; onOrganizerC
             className="text-[10px] font-[DM_Sans] text-[rgba(232,228,218,0.30)] leading-none mt-[6px] hover:text-[#7AAAFF] transition-colors text-left"
           >
             Event Organized by {event.organizer}
-          </button          >
+          </button>
         </div>
         <p className="text-[12px] font-[DM_Sans] font-light leading-[19.20px] text-[rgba(232,228,218,0.38)]">
           {event.description}
@@ -156,13 +156,13 @@ export default function EventsPage() {
     try {
       const [data] = await Promise.all([
         getAllEvents(params),
-        new Promise((r) => setTimeout(r, 1500)),
+        new Promise<void>((r) => setTimeout(r, 1500)),
       ]);
-      const mapped = (data.events || []).map(mapEvent);
+      const mapped: EventData[] = (data.events || []).map(mapEvent);
       setAllEvents(mapped);
       // Build category counts
       const counts: Record<string, number> = {};
-      mapped.forEach((e) => {
+      mapped.forEach((e: EventData) => {
         counts[e.category] = (counts[e.category] || 0) + 1;
       });
       setCategoryCounts(counts);

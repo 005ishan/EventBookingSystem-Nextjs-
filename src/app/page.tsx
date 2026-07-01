@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, type TouchEvent, type MouseEvent } from "react";
 import Navbar from "@/components/Navbar";
 import EventCard from "@/components/EventCard";
 import AuthModal from "@/components/AuthModal";
@@ -12,12 +12,12 @@ export default function LandingPage() {
   const [currentFeatured, setCurrentFeatured] = useState(0);
   const [showModal, setShowModal] = useState(false);
 
-  const touchStartX: any = useRef(null);
-  const touchEndX: any = useRef(null);
-  const mouseDownX: any = useRef(null);
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
+  const mouseDownX = useRef<number | null>(null);
   const minSwipe = 50;
 
-  function handleSwipe(dist: any) {
+  function handleSwipe(dist: number) {
     if (dist > minSwipe && currentFeatured < 2) {
       setCurrentFeatured(currentFeatured + 1);
     } else if (dist < -minSwipe && currentFeatured > 0) {
@@ -25,12 +25,12 @@ export default function LandingPage() {
     }
   }
 
-  function onTouchStart(e: any) {
+  function onTouchStart(e: TouchEvent<HTMLDivElement>) {
     touchEndX.current = null;
     touchStartX.current = e.targetTouches[0].clientX;
   }
 
-  function onTouchMove(e: any) {
+  function onTouchMove(e: TouchEvent<HTMLDivElement>) {
     touchEndX.current = e.targetTouches[0].clientX;
   }
 
@@ -39,11 +39,11 @@ export default function LandingPage() {
     handleSwipe(touchStartX.current - touchEndX.current);
   }
 
-  function onMouseDown(e: any) {
+  function onMouseDown(e: MouseEvent<HTMLDivElement>) {
     mouseDownX.current = e.clientX;
   }
 
-  function onMouseUp(e: any) {
+  function onMouseUp(e: MouseEvent<HTMLDivElement>) {
     if (mouseDownX.current === null) return;
     handleSwipe(mouseDownX.current - e.clientX);
     mouseDownX.current = null;

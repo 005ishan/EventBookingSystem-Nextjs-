@@ -1,6 +1,17 @@
 "use client";
 
-export default function EventCard({ img, title, price, desc, btn, onAction, date, organizer }: any) {
+interface EventCardProps {
+  img: string;
+  title: string;
+  price: string;
+  desc: string;
+  btn: string;
+  onAction: () => void;
+  date: string;
+  organizer?: string;
+}
+
+export default function EventCard({ img, title, price, desc, btn, onAction, date, organizer }: EventCardProps) {
   return (
     <div className="flex-1 bg-[#242A3A] rounded-3xl hover:bg-[#2A3042]" style={{ boxShadow: "0px 8px 10px #0000001A" }}>
       <div

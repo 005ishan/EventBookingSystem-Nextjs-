@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ChangeEvent, type FormEvent } from "react";
 import Navbar from "@/components/Navbar";
 import AuthenticatedNavbar from "@/components/AuthenticatedNavbar";
 import Footer from "@/components/Footer";
@@ -24,11 +24,11 @@ export default function ContactPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  function handleChange(e: any, field: string) {
+  function handleChange(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: string) {
     setFormData({ ...formData, [field]: e.target.value });
   }
 
-  function handleSubmit(e: any) {
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSubmitted(true);
     setFormData({ name: "", email: "", subject: "", message: "" });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ChangeEvent } from "react";
 import FooterLink from "@/components/FooterLink";
 import { useToast } from "@/components/Toast";
 
@@ -47,7 +47,7 @@ export default function Footer() {
           </p>
           <div className="flex flex-col self-stretch gap-3">
             <input placeholder="Email address" value={email}
-              onChange={(e: any) => setEmail(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
               className="self-stretch text-gray-500 bg-[#242A3A] text-sm py-3.5 px-[17px] rounded-xl border border-solid border-[#2F344580] focus:outline-none focus:border-[#4A7AFF]" />
             <button
               onClick={() => {
