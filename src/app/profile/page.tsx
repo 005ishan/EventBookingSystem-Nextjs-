@@ -5,6 +5,7 @@ import AuthenticatedNavbar from "@/components/AuthenticatedNavbar";
 import Footer from "@/components/Footer";
 import { isAuthenticated, getUser } from "@/services/authService";
 import { getProfile, updateProfile, changePassword, uploadProfilePicture, removeProfilePicture } from "@/services/profileService";
+import { SkeletonProfile } from "@/components/Skeleton";
 
 export default function EditProfilePage() {
   const router = useRouter();
@@ -40,7 +41,6 @@ export default function EditProfilePage() {
       setProfilePicture(data.profilePicture);
       setMessage({ type: "success", text: data.message || "Profile picture updated!" });
 
-      // Update localStorage with fresh user data
       const currentUser = getUser() || { name: "", email: "", profilePicture: "" };
       localStorage.setItem(
         "user",
@@ -51,7 +51,6 @@ export default function EditProfilePage() {
       setMessage({ type: "error", text: errorMsg });
     } finally {
       setUploadingPhoto(false);
-      // Reset file input so the same file can be re-selected
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }
@@ -64,7 +63,6 @@ export default function EditProfilePage() {
       setProfilePicture("");
       setMessage({ type: "success", text: data.message || "Profile picture removed" });
 
-      // Update localStorage
       const currentUser = getUser() || { name: "", email: "", profilePicture: "" };
       const { profilePicture: _, ...rest } = currentUser;
       localStorage.setItem("user", JSON.stringify(rest));
@@ -83,9 +81,11 @@ export default function EditProfilePage() {
     }
     setCheckedAuth(true);
 
-    // Fetch profile data from backend
-    getProfile()
-      .then((data) => {
+    Promise.all([
+      getProfile(),
+      new Promise((r) => setTimeout(r, 1500)),
+    ])
+      .then(([data]) => {
         setFirstName(data.firstName || "");
         setLastName(data.lastName || "");
         setOrganizerName(data.organizerName || "");
@@ -107,7 +107,6 @@ export default function EditProfilePage() {
       const data = await updateProfile({ firstName, lastName, organizerName });
       setMessage({ type: "success", text: data.message || "Profile updated successfully!" });
 
-      // Update localStorage user data
       if (data.user) {
         const fullName = `${data.user.firstName} ${data.user.lastName}`.trim();
         const existing = getUser() || { name: "", email: "", profilePicture: "" };
@@ -199,10 +198,7 @@ export default function EditProfilePage() {
         </p>
 
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-            <span className="text-gray-400 text-sm ml-3">Loading profile...</span>
-          </div>
+          <SkeletonProfile />
         ) : (
           <>
             <div className="flex gap-6 mb-6">
@@ -299,7 +295,6 @@ export default function EditProfilePage() {
               </div>
             </div>
 
-            {/* Message banner */}
             {message && (
               <div
                 className={`mb-6 px-6 py-3 rounded-xl border text-sm flex items-center gap-2 ${
@@ -356,7 +351,6 @@ export default function EditProfilePage() {
                 </div>
               </div>
 
-              {/* Password message */}
               {passwordMessage && (
                 <div
                   className={`mt-4 px-4 py-2.5 rounded-xl border text-sm flex items-center gap-2 ${
