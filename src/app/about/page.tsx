@@ -4,14 +4,21 @@ import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import AuthenticatedNavbar from "@/components/AuthenticatedNavbar";
 import Footer from "@/components/Footer";
+import { SkeletonPublicPage } from "@/components/Skeleton";
 import { isAuthenticated } from "@/services/authService";
 
 export default function AboutPage() {
+  const [loading, setLoading] = useState(true);
   const [loggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
     setLoggedIn(isAuthenticated());
+    const timer = setTimeout(() => setLoading(false), 500);
+    return () => clearTimeout(timer);
   }, []);
+
+  if (loading) return <SkeletonPublicPage />;
+
   return (
     <div className="flex flex-col bg-white min-h-screen">
       <div className="self-stretch bg-[#0A0E1A] border border-solid border-black flex flex-col min-h-screen"
@@ -19,15 +26,12 @@ export default function AboutPage() {
         {loggedIn ? <AuthenticatedNavbar /> : <Navbar />}
 
         <div className="flex-1 overflow-y-auto">
-          {/* Hero section */}
           <section className="self-stretch pb-10">
             <div className="flex flex-col items-center self-stretch max-w-[1150px] pt-20 pb-14 px-6 mx-auto gap-6">
-              {/* Our story badge */}
               <div className="flex items-center bg-[#4A7AFF]/10 py-1 px-5 gap-2 rounded-full border border-[#4A7AFF]/30">
                 <span className="text-[#4A7AFF] text-xs font-medium tracking-wide">Our story</span>
               </div>
 
-              {/* Heading */}
               <div className="flex flex-col items-center max-w-[700px] pt-2">
                 <h1 className="text-center text-[#E8E4DA] text-5xl md:text-6xl font-bold leading-[1.1]">
                   Built for people who{" "}
@@ -39,7 +43,6 @@ export default function AboutPage() {
                 </h1>
               </div>
 
-              {/* Description */}
               <div className="max-w-[540px] text-center">
                 <p className="text-[#E4BDBA] text-base leading-7">
                   EBS is a modern event management platform helping organizers create,
@@ -49,7 +52,6 @@ export default function AboutPage() {
               </div>
             </div>
 
-            {/* Stats section */}
             <div className="max-w-[1150px] mx-auto px-6">
               <div className="grid grid-cols-4 bg-[#151B2B] rounded-2xl border border-white/10 overflow-hidden">
                 <div className="flex flex-col items-center py-8 px-5 border-r border-white/5">
@@ -79,7 +81,6 @@ export default function AboutPage() {
               </div>
             </div>
 
-            {/* Mission section */}
             <div className="max-w-[1150px] mx-auto px-6 pt-20 pb-10">
               <div className="bg-[#151B2B] rounded-2xl border border-[#4A7AFF]/20 p-8 md:p-12">
                 <div className="flex flex-col md:flex-row gap-10 items-start">
@@ -110,7 +111,6 @@ export default function AboutPage() {
               </div>
             </div>
 
-            {/* Team section - student made feel */}
             <div className="max-w-[1150px] mx-auto px-6 pt-10 pb-10">
               <h2 className="text-center text-[#E8E4DA] text-3xl font-bold mb-8">
                 Meet our <span className="text-[#4A7AFF]">team</span>
@@ -137,7 +137,6 @@ export default function AboutPage() {
             </div>
           </section>
 
-          {/* CTA section */}
           <div className="max-w-[1150px] mx-auto px-6 pb-16">
             <div className="bg-[#151B2B] rounded-2xl border border-[#4A7AFF]/20 p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="flex flex-col gap-2">

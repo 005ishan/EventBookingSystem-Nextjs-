@@ -4,13 +4,19 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import AuthenticatedNavbar from "@/components/AuthenticatedNavbar";
 import Footer from "@/components/Footer";
+import { SkeletonAuthenticatedPage } from "@/components/Skeleton";
 import { isAuthenticated } from "@/services/authService";
+import { createEvent, uploadEventImage } from "@/services/eventService";
 
 export default function CreateEventPage() {
   const router = useRouter();
   const [checkedAuth, setCheckedAuth] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [eventName, setEventName] = useState("");
   const [description, setDescription] = useState("");
+  const [location, setLocation] = useState("");
+  const [category, setCategory] = useState("Festival");
+  const [totalSeats, setTotalSeats] = useState("100");
   const [startDate, setStartDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -20,6 +26,7 @@ export default function CreateEventPage() {
   const [eventImage, setEventImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [publishing, setPublishing] = useState(false);
+  const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -27,6 +34,8 @@ export default function CreateEventPage() {
       router.push("/auth/login");
     } else {
       setCheckedAuth(true);
+      const timer = setTimeout(() => setLoading(false), 1500);
+      return () => clearTimeout(timer);
     }
   }, []);
 
@@ -58,35 +67,65 @@ export default function CreateEventPage() {
     e.preventDefault();
   }
 
-  function handlePublish() {
+  async function handlePublish() {
+    setError("");
     if (!eventName.trim()) {
-      alert("Please enter an event name");
+      setError("Please enter an event name");
       return;
     }
     if (!description.trim()) {
-      alert("Please enter a description");
+      setError("Please enter a description");
+      return;
+    }
+    if (!location.trim()) {
+      setError("Please enter event location");
       return;
     }
     if (!startDate || !startTime || !endDate || !endTime) {
-      alert("Please set start and end date/time");
+      setError("Please set start and end date/time");
       return;
     }
     setPublishing(true);
-    setTimeout(() => {
-      setPublishing(false);
-      alert("Event published successfully!");
+    try {
+      let image = "";
+      if (eventImage) {
+        const uploadRes = await uploadEventImage(eventImage);
+        image = uploadRes.image;
+      }
+      const price =
+        ticketType === "free"
+          ? 0
+          : ticketType === "donation"
+            ? 0
+            : parseFloat(ticketPrice) || 0;
+      await createEvent({
+        title: eventName.trim(),
+        description: description.trim(),
+        category,
+        date: startDate,
+        time: startTime,
+        location: location.trim(),
+        price,
+        totalSeats: parseInt(totalSeats) || 100,
+        image,
+      });
       router.push("/dashboard");
-    }, 1500);
+    } catch (err: any) {
+      const msg =
+        err.response?.data?.message || "Failed to publish event. Please try again.";
+      setError(msg);
+    } finally {
+      setPublishing(false);
+    }
   }
 
-  if (!checkedAuth) return null;
+  if (!checkedAuth || loading) return <SkeletonAuthenticatedPage />;
 
   return (
     <div className="min-h-screen bg-[#0A0E1A]">
       <AuthenticatedNavbar />
 
       <div className="max-w-[1500px] mx-auto px-8 py-10">
-        {/* Header */}
         <div className="mb-8">
           <p className="text-blue-400 text-sm mb-1">Create event</p>
           <h1 className="text-white text-4xl font-bold">
@@ -97,9 +136,7 @@ export default function CreateEventPage() {
           </p>
         </div>
 
-        {/* Row 1 */}
         <div className="flex gap-6 mb-6">
-          {/* Basic Info */}
           <div className="flex-1 bg-[#151B2B] rounded-xl border border-gray-700 p-6">
             <h2 className="text-gray-400 text-xs uppercase tracking-wider mb-5">Basic information</h2>
 
@@ -119,13 +156,44 @@ export default function CreateEventPage() {
                 if (e.target.value.length <= 500) setDescription(e.target.value);
               }}
               placeholder="Describe what attendees can expect..."
-              rows={5}
+              rows={4}
               className="w-full px-4 py-3 bg-white/5 rounded-lg border border-gray-700 text-white text-sm outline-none focus:border-blue-500 resize-none mb-1"
             />
-            <p className="text-right text-gray-500 text-xs">{description.length} / 500</p>
+            <p className="text-right text-gray-500 text-xs mb-4">{description.length} / 500</p>
+
+            <label className="text-gray-400 text-sm mb-1 block">Location</label>
+            <input
+              type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Where is this event?"
+              className="w-full h-11 px-4 bg-white/5 rounded-lg border border-gray-700 text-white text-sm outline-none focus:border-blue-500 mb-4"
+            />
+
+            <label className="text-gray-400 text-sm mb-1 block">Category</label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full h-11 px-4 bg-white/5 rounded-lg border border-gray-700 text-white text-sm outline-none focus:border-blue-500 mb-4 [color-scheme:dark]"
+            >
+              <option value="Festival" className="bg-[#151B2B]">Festival</option>
+              <option value="Concert" className="bg-[#151B2B]">Concert</option>
+              <option value="Social" className="bg-[#151B2B]">Social</option>
+              <option value="Charity" className="bg-[#151B2B]">Charity</option>
+              <option value="Others" className="bg-[#151B2B]">Others</option>
+            </select>
+
+            <label className="text-gray-400 text-sm mb-1 block">Total seats</label>
+            <input
+              type="number"
+              value={totalSeats}
+              onChange={(e) => setTotalSeats(e.target.value)}
+              placeholder="100"
+              min="1"
+              className="w-full h-11 px-4 bg-white/5 rounded-lg border border-gray-700 text-white text-sm outline-none focus:border-blue-500"
+            />
           </div>
 
-          {/* Event Image */}
           <div className="flex-1 bg-[#151B2B] rounded-xl border border-gray-700 p-6">
             <h2 className="text-gray-400 text-xs uppercase tracking-wider mb-5">Event image</h2>
 
@@ -163,9 +231,7 @@ export default function CreateEventPage() {
           </div>
         </div>
 
-        {/* Row 2 */}
         <div className="flex gap-6 mb-8">
-          {/* Tickets & Pricing */}
           <div className="flex-1 bg-[#151B2B] rounded-xl border border-gray-700 p-6">
             <h2 className="text-gray-400 text-xs uppercase tracking-wider mb-5">Tickets & pricing</h2>
 
@@ -225,7 +291,6 @@ export default function CreateEventPage() {
             </div>
           </div>
 
-          {/* Date & Time */}
           <div className="flex-1 bg-[#151B2B] rounded-xl border border-gray-700 p-6">
             <h2 className="text-gray-400 text-xs uppercase tracking-wider mb-5">Date & time</h2>
 
@@ -259,7 +324,12 @@ export default function CreateEventPage() {
           </div>
         </div>
 
-        {/* Publish Button */}
+        {error && (
+          <div className="max-w-[800px] mx-auto mb-6 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-xl p-4 text-center">
+            {error}
+          </div>
+        )}
+
         <div className="text-center">
           <button
             onClick={handlePublish}

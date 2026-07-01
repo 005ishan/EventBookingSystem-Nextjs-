@@ -5,8 +5,10 @@ import Navbar from "@/components/Navbar";
 import EventCard from "@/components/EventCard";
 import AuthModal from "@/components/AuthModal";
 import Footer from "@/components/Footer";
+import { SkeletonLandingPage } from "@/components/Skeleton";
 
 export default function LandingPage() {
+  const [loading, setLoading] = useState(true);
   const [currentFeatured, setCurrentFeatured] = useState(0);
   const [showModal, setShowModal] = useState(false);
 
@@ -56,8 +58,9 @@ export default function LandingPage() {
   }
 
   useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 1500);
     const interval = setInterval(goToNext, 5000);
-    return () => clearInterval(interval);
+    return () => { clearTimeout(timer); clearInterval(interval); };
   }, [currentFeatured]);
 
   function requireAuth() {
@@ -99,6 +102,8 @@ export default function LandingPage() {
     { img: "/img/nepaltourism2024.jpg", title: "Himalayan Food & Culture Fest", price: "Rs. 1,000", desc: "FOOD \u2022 CULTURE \u2022 Authentic Nepali cuisine,\ntraditional dances & local artisan stalls", btn: "Get Tickets", date: "NOV 12 \u2022 10:00 AM" },
     { img: "/img/standupcomedy.png", title: "Laugh Nepal: Comedy Special", price: "Rs. 600", desc: "COMEDY \u2022 LIVE SHOW \u2022 An evening of\nhilarious stand-up with Nepal's funniest", btn: "Join Guestlist", date: "NOV 19 \u2022 7:00 PM" },
   ];
+
+  if (loading) return <SkeletonLandingPage />;
 
   return (
     <div className="flex flex-col bg-white min-h-screen">
