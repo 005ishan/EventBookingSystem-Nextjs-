@@ -53,7 +53,6 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Error message */}
         {error && (
           <div className="mb-4 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-xl p-3 text-center">
             {error}
