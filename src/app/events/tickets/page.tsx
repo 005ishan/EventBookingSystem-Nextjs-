@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import AuthenticatedNavbar from "@/components/AuthenticatedNavbar";
-import Footer from "@/components/Footer";
 import Skeleton from "@/components/Skeleton";
 import { isAuthenticated } from "@/services/authService";
 
@@ -350,7 +349,6 @@ export default function TicketsPage() {
           </div>
         </div>
       </div>
-        <Footer />
     </div>
   );
 }

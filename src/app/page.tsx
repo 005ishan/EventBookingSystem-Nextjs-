@@ -115,7 +115,7 @@ export default function LandingPage() {
             <div className="flex flex-col items-center self-stretch max-w-[1278px] pt-16 pb-8 px-6 mx-auto">
               <h1 className="text-[#DDE2F8] text-6xl text-center w-[400px] whitespace-pre-line">
                 {"Find Your Next\n"}
-                <span className="bg-gradient-to-r from-[#FF4B4B] to-[#FFB3AE] bg-clip-text text-transparent">Experience</span>
+                <span className="text-[#FF4B4B]">Experience</span>
               </h1>
             </div>
             <div className="relative max-w-[1150px] mx-auto overflow-hidden rounded-2xl select-none cursor-grab active:cursor-grabbing"
@@ -128,7 +128,7 @@ export default function LandingPage() {
                   <div key={i} className="min-w-full flex justify-between items-start relative overflow-hidden">
                     <div className="absolute inset-0 bg-cover bg-center"
                       style={{ backgroundImage: `url(${event.img})` }} />
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#0D1322]/95 via-[#0D1322]/70 to-[#0D1322]/30" />
+                    <div className="absolute inset-0 bg-[#0D1322]/80" />
                     <div className="flex flex-col shrink-0 items-start py-16 mt-[200px] gap-4 relative z-10">
                       <div className="flex items-center bg-[#FF4B4BE3] py-1 px-4 ml-16 gap-2 rounded-[9999px]">
                         <div className="bg-white w-2 h-2 rounded-[9999px]" />

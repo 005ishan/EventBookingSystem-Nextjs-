@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import AuthenticatedNavbar from "@/components/AuthenticatedNavbar";
-import Footer from "@/components/Footer";
 import { SkeletonAuthenticatedPage } from "@/components/Skeleton";
 import { isAuthenticated } from "@/services/authService";
 import { createEvent, uploadEventImage } from "@/services/eventService";
@@ -330,18 +329,25 @@ export default function CreateEventPage() {
           </div>
         )}
 
-        <div className="text-center">
+      </div>
+
+      <div className="sticky bottom-0 bg-[#0D1223] border-t border-[rgba(255,255,255,0.08)] px-8 py-4 z-50">
+        <div className="max-w-[1500px] mx-auto flex items-center justify-between">
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="px-6 py-3 rounded-lg border border-[rgba(255,255,255,0.15)] text-white text-sm hover:bg-white/5 transition-all"
+          >
+            Cancel
+          </button>
           <button
             onClick={handlePublish}
             disabled={publishing}
-            className="w-44 h-14 bg-blue-500 rounded-xl text-white text-base font-medium hover:bg-blue-600 disabled:opacity-50"
+            className="px-8 py-3 bg-blue-500 rounded-xl text-white text-sm font-medium hover:bg-blue-600 transition-all disabled:opacity-50"
           >
             {publishing ? "Publishing..." : "Publish event"}
           </button>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 }

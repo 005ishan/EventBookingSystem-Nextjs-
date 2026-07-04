@@ -56,7 +56,7 @@ export default function ContactPage() {
               <div className="flex flex-col items-center max-w-[650px]">
                 <h1 className="text-center text-[#E8E4DA] text-5xl md:text-6xl font-bold leading-[1.1]">
                   We&apos;d love to hear{" "}
-                  <span className="bg-gradient-to-r from-[#4A7AFF] to-[#bcb6fc] bg-clip-text text-transparent">
+                  <span className="text-[#4A7AFF]">
                     from you
                   </span>
                 </h1>
