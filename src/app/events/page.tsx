@@ -8,11 +8,6 @@ import { isAuthenticated } from "@/services/authService";
 import { getAllEvents } from "@/services/eventService";
 import { SkeletonEventCardGrid } from "@/components/Skeleton";
 
-interface Attendee {
-  initial: string;
-  color: string;
-}
-
 interface EventData {
   _id: string;
   date: string;
@@ -21,12 +16,12 @@ interface EventData {
   category: string;
   title: string;
   description: string;
-  price: string;
+  priceNum: number;
   organizer: string;
   createdById: string;
-  attendees: Attendee[];
-  count: string;
   image: string;
+  totalSeats: number;
+  availableSeats: number;
 }
 
 function EventCard({ event, onOrganizerClick }: { event: EventData; onOrganizerClick: (id: string, name: string) => void }) {
@@ -64,40 +59,26 @@ function EventCard({ event, onOrganizerClick }: { event: EventData; onOrganizerC
             Event Organized by {event.organizer}
           </button>
         </div>
-        <p className="text-[12px] font-[DM_Sans] font-light leading-[19.20px] text-[rgba(232,228,218,0.38)]">
+        <p className="text-[12px] font-[DM_Sans] font-light leading-[19.20px] text-[rgba(232,228,218,0.38)] line-clamp-2">
           {event.description}
         </p>
         <div className="self-stretch pt-3 border-t border-[rgba(255,255,255,0.06)] flex items-center justify-between">
-          <div className="flex items-center gap-[5px]">
-            <div className="flex items-center">
-              {event.attendees.map((person, i) => (
-                <div
-                  key={i}
-                  className="w-[22px] h-[22px] rounded-full outline outline-1 outline-[#0D1223] outline-offset-[-1px] flex items-center justify-center"
-                  style={{
-                    backgroundColor: person.color,
-                    marginLeft: i > 0 ? "-6px" : "0",
-                    zIndex: 3 - i,
-                  }}
-                >
-                  <span className="text-white text-[9px] font-[DM_Sans] font-medium">
-                    {person.initial}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <span className="text-[11px] font-[DM_Sans] text-[rgba(232,228,218,0.32)] ml-[4px]">
-              {event.count}
+          <span className="text-[11px] font-[DM_Sans] text-[rgba(232,228,218,0.45)]">
+            {event.availableSeats} / {event.totalSeats} seats
+          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-[13px] font-[DM_Sans] font-semibold text-[#3BA67C]">
+              Rs. {event.priceNum.toLocaleString()}
             </span>
+            <button
+              onClick={() => router.push(`/events/${event._id}`)}
+              className="px-[14px] py-[6px] bg-[#3BA67C] rounded-[7px] hover:bg-[#2d8e68] transition-all"
+            >
+              <span className="text-[12px] font-[DM_Sans] font-medium text-white">
+                Buy Tickets
+              </span>
+            </button>
           </div>
-          <button
-            onClick={() => router.push(`/events/${event._id}`)}
-            className="px-[14px] py-[6px] bg-[rgba(74,122,255,0.14)] rounded-[7px] outline outline-1 outline-offset-[-1px] outline-[rgba(74,122,255,0.32)] hover:bg-[rgba(74,122,255,0.25)] transition-all"
-          >
-            <span className="text-[12px] font-[DM_Sans] font-medium text-[#7AAAFF]">
-              View Details ❗
-            </span>
-          </button>
         </div>
       </div>
     </div>
@@ -125,11 +106,11 @@ function mapEvent(raw: any): EventData {
     category: raw.category || "Others",
     title: raw.title,
     description: raw.description,
-    price: raw.price ? `Rs. ${raw.price}` : "",
+    priceNum: Number(raw.price) || 0,
     organizer: organizerName,
     createdById: raw.createdBy?._id || "",
-    attendees: [{ initial: organizerName.charAt(0).toUpperCase(), color: "#4A7AFF" }],
-    count: String(raw.totalSeats ?? 0),
+    totalSeats: raw.totalSeats ?? 0,
+    availableSeats: raw.availableSeats ?? 0,
     image: raw.image ? `${API_BASE}${raw.image}` : "/img/nepaltourism2024.jpg",
   };
 }
