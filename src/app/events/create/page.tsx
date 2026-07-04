@@ -151,9 +151,7 @@ export default function CreateEventPage() {
             <label className="text-gray-400 text-sm mb-1 block">Description</label>
             <textarea
               value={description}
-              onChange={(e) => {
-                if (e.target.value.length <= 500) setDescription(e.target.value);
-              }}
+              onChange={(e) => setDescription(e.target.value.slice(0, 500))}
               placeholder="Describe what attendees can expect..."
               rows={4}
               className="w-full px-4 py-3 bg-white/5 rounded-lg border border-gray-700 text-white text-sm outline-none focus:border-blue-500 resize-none mb-1"
