@@ -6,7 +6,9 @@ import AuthenticatedNavbar from "@/components/AuthenticatedNavbar";
 import { isAuthenticated } from "@/services/authService";
 import { getAllEvents, deleteEvent } from "@/services/eventService";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:5000";
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
+  "http://localhost:5000";
 
 function getUserIdFromToken() {
   if (typeof window === "undefined") return null;
@@ -41,20 +43,52 @@ function getEventStatus(dateRaw: string): EventStatus {
   const now = new Date();
   const eventDate = new Date(dateRaw);
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const eventDay = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+  const eventDay = new Date(
+    eventDate.getFullYear(),
+    eventDate.getMonth(),
+    eventDate.getDate(),
+  );
   const diff = eventDay.getTime() - today.getTime();
   if (diff === 0) return "Live now";
   if (diff > 0) return "Upcoming";
   return "Completed";
 }
 
-const statusColors: Record<EventStatus, { dot: string; bg: string; text: string }> = {
-  "Live now": { dot: "bg-[#FF4B4B]", bg: "bg-[rgba(255,75,75,0.12)]", text: "text-[#FF4B4B]" },
-  Upcoming: { dot: "bg-[#4A7AFF]", bg: "bg-[rgba(74,122,255,0.12)]", text: "text-[#4A7AFF]" },
-  Completed: { dot: "bg-[#3BA67C]", bg: "bg-[rgba(59,166,124,0.12)]", text: "text-[#3BA67C]" },
+const statusColors: Record<
+  EventStatus,
+  { dot: string; bg: string; text: string }
+> = {
+  "Live now": {
+    dot: "bg-[#FF4B4B]",
+    bg: "bg-[rgba(255,75,75,0.12)]",
+    text: "text-[#FF4B4B]",
+  },
+  Upcoming: {
+    dot: "bg-[#4A7AFF]",
+    bg: "bg-[rgba(74,122,255,0.12)]",
+    text: "text-[#4A7AFF]",
+  },
+  Completed: {
+    dot: "bg-[#3BA67C]",
+    bg: "bg-[rgba(59,166,124,0.12)]",
+    text: "text-[#3BA67C]",
+  },
 };
 
-const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const months = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
 function formatDate(dateStr: string) {
   const d = new Date(dateStr);
@@ -74,10 +108,23 @@ export default function MyEventsPage() {
   const [deleting, setDeleting] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const loadStart = useRef(0);
+  const deleteStart = useRef(0);
+
+  function ensureMinDuration(start: number, ms: number): Promise<void> {
+    const elapsed = Date.now() - start;
+    if (elapsed < ms) {
+      return new Promise((r) => setTimeout(r, ms - elapsed));
+    }
+    return Promise.resolve();
+  }
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
         setShowStatusDropdown(false);
       }
     }
@@ -101,6 +148,7 @@ export default function MyEventsPage() {
   }, [router]);
 
   async function loadEvents() {
+    loadStart.current = Date.now();
     try {
       const userId = getUserIdFromToken();
       const data = await getAllEvents();
@@ -117,24 +165,29 @@ export default function MyEventsPage() {
           location: e.location,
           price: Number(e.price) || 0,
           totalSeats: e.totalSeats,
-          image: e.image ? `${API_BASE}${e.image}` : "/img/nepaltourism2024.jpg",
+          image: e.image
+            ? `${API_BASE}${e.image}`
+            : "/img/nepaltourism2024.jpg",
           status: getEventStatus(e.date),
         }));
       setEvents(mapped);
     } catch {}
+    await ensureMinDuration(loadStart.current, 500);
     setLoading(false);
   }
 
   async function handleDelete(eventId: string) {
+    deleteStart.current = Date.now();
     setDeleting(true);
     try {
       await deleteEvent(eventId);
       setEvents((prev) => prev.filter((e) => e._id !== eventId));
-      setDeleteConfirm(null);
     } catch {
       alert("Failed to delete event");
     }
+    await ensureMinDuration(deleteStart.current, 500);
     setDeleting(false);
+    setDeleteConfirm(null);
   }
 
   const filteredEvents = events.filter((event) => {
@@ -144,16 +197,10 @@ export default function MyEventsPage() {
       event.title.toLowerCase().includes(q) ||
       event.location.toLowerCase().includes(q) ||
       event.category.toLowerCase().includes(q);
-    const matchesStatus = statusFilter === "All" || event.status === statusFilter;
+    const matchesStatus =
+      statusFilter === "All" || event.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
-
-  const stats = [
-    { label: "Total", value: events.length, icon: "✦", color: "#4A7AFF" },
-    { label: "Live", value: events.filter((e) => e.status === "Live now").length, icon: "●", color: "#FF4B4B" },
-    { label: "Upcoming", value: events.filter((e) => e.status === "Upcoming").length, icon: "○", color: "#4A7AFF" },
-    { label: "Done", value: events.filter((e) => e.status === "Completed").length, icon: "✓", color: "#3BA67C" },
-  ];
 
   if (!checkedAuth) return null;
 
@@ -165,53 +212,19 @@ export default function MyEventsPage() {
       <div className="border-b border-[rgba(255,255,255,0.06)]">
         <div className="max-w-[1278px] mx-auto px-6 md:px-12 pt-12 pb-8">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-1 h-5 bg-[#4A7AFF] rounded-full" />
             <span className="text-[11px] font-[DM_Sans] uppercase tracking-[1.5px] text-[rgba(232,228,218,0.35)]">
               Manage Events
             </span>
           </div>
 
           <h1 className="text-[#E8E4DA] text-3xl md:text-4xl font-['Playfair_Display'] font-semibold leading-tight">
-            Your{" "}
-            <span className="text-[#4A7AFF]">
-              Events
-            </span>
+            Your <span className="text-[#4A7AFF]">Events</span>
           </h1>
           <p className="text-[rgba(232,228,218,0.35)] text-sm mt-1.5 font-[DM_Sans]">
-            {loading ? "Gathering your events..." : `${events.length} event${events.length !== 1 ? "s" : ""} created`}
+            {loading
+              ? "Gathering your events..."
+              : `${events.length} event${events.length !== 1 ? "s" : ""} created`}
           </p>
-        </div>
-      </div>
-
-      {/* ── Stats Bar ── */}
-      <div className="border-b border-[rgba(255,255,255,0.06)]">
-        <div className="max-w-[1278px] mx-auto px-6 md:px-12 py-5">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {stats.map((s) => (
-              <div
-                key={s.label}
-                className="bg-[#0D1223] rounded-xl outline outline-1 outline-[rgba(255,255,255,0.06)] px-4 py-3.5 flex items-center gap-3"
-              >
-                {s.color && s.label === "Total" ? (
-                  <span className="text-lg font-bold leading-none" style={{ color: s.color }}>
-                    {s.icon}
-                  </span>
-                ) : (
-                  <span className="text-lg font-bold leading-none" style={{ color: s.color }}>
-                    {s.icon}
-                  </span>
-                )}
-                <div>
-                  <p className="text-[11px] font-[DM_Sans] text-[rgba(232,228,218,0.35)] uppercase tracking-[0.8px]">
-                    {s.label}
-                  </p>
-                  <p className="text-[#E8E4DA] text-lg font-semibold font-['Playfair_Display'] leading-tight mt-0.5">
-                    {loading ? "—" : s.value}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
 
@@ -223,7 +236,8 @@ export default function MyEventsPage() {
             <button
               onClick={() => {
                 setShowSearch(!showSearch);
-                if (!showSearch) setTimeout(() => searchRef.current?.focus(), 50);
+                if (!showSearch)
+                  setTimeout(() => searchRef.current?.focus(), 50);
                 else setSearchQuery("");
               }}
               className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all ${
@@ -233,11 +247,26 @@ export default function MyEventsPage() {
               }`}
               aria-label="Toggle search"
             >
-              <svg className="w-4 h-4 text-[rgba(232,228,218,0.50)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                {showSearch
-                  ? <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  : <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                }
+              <svg
+                className="w-4 h-4 text-[rgba(232,228,218,0.50)]"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              >
+                {showSearch ? (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                ) : (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                )}
               </svg>
             </button>
 
@@ -256,21 +285,23 @@ export default function MyEventsPage() {
 
             {/* Status filter pills */}
             <div className="hidden md:flex items-center gap-1.5 ml-2">
-              {(["All", "Live now", "Upcoming", "Completed"] as const).map((status) => (
-                <button
-                  key={status}
-                  onClick={() => setStatusFilter(status)}
-                  className={`px-3 py-1.5 rounded-lg text-[11px] font-[DM_Sans] font-medium tracking-[0.3px] transition-all ${
-                    statusFilter === status
-                      ? status === "All"
-                        ? "bg-[rgba(74,122,255,0.15)] text-[#7AAAFF] outline outline-1 outline-[rgba(74,122,255,0.3)]"
-                        : `${statusColors[status].bg} ${statusColors[status].text} outline outline-1 outline-[rgba(255,255,255,0.08)]`
-                      : "text-[rgba(232,228,218,0.30)] hover:text-[rgba(232,228,218,0.50)] hover:bg-[rgba(255,255,255,0.03)]"
-                  }`}
-                >
-                  {status === "All" ? "All Events" : status}
-                </button>
-              ))}
+              {(["All", "Live now", "Upcoming", "Completed"] as const).map(
+                (status) => (
+                  <button
+                    key={status}
+                    onClick={() => setStatusFilter(status)}
+                    className={`px-3 py-1.5 rounded-lg text-[11px] font-[DM_Sans] font-medium tracking-[0.3px] transition-all ${
+                      statusFilter === status
+                        ? status === "All"
+                          ? "bg-[rgba(74,122,255,0.15)] text-[#7AAAFF] outline outline-1 outline-[rgba(74,122,255,0.3)]"
+                          : `${statusColors[status].bg} ${statusColors[status].text} outline outline-1 outline-[rgba(255,255,255,0.08)]`
+                        : "text-[rgba(232,228,218,0.30)] hover:text-[rgba(232,228,218,0.50)] hover:bg-[rgba(255,255,255,0.03)]"
+                    }`}
+                  >
+                    {status === "All" ? "All Events" : status}
+                  </button>
+                ),
+              )}
             </div>
 
             {/* Mobile status dropdown */}
@@ -280,23 +311,40 @@ export default function MyEventsPage() {
                 className="h-9 px-3 bg-[rgba(255,255,255,0.04)] rounded-lg outline outline-1 outline-[rgba(255,255,255,0.08)] flex items-center text-[rgba(232,228,218,0.50)] text-xs gap-2"
               >
                 {statusFilter === "All" ? "Status" : statusFilter}
-                <svg className={`w-3 h-3 transition-transform ${showStatusDropdown ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                <svg
+                  className={`w-3 h-3 transition-transform ${showStatusDropdown ? "rotate-180" : ""}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </button>
               {showStatusDropdown && (
                 <div className="absolute top-full mt-1 left-0 w-40 bg-[#0D1223] rounded-xl outline outline-1 outline-[rgba(255,255,255,0.10)] shadow-2xl overflow-hidden z-50">
-                  {(["All", "Live now", "Upcoming", "Completed"] as const).map((status) => (
-                    <button
-                      key={status}
-                      onClick={() => { setStatusFilter(status); setShowStatusDropdown(false); }}
-                      className={`w-full px-4 py-2.5 text-xs text-left hover:bg-[rgba(255,255,255,0.03)] transition-all ${
-                        statusFilter === status ? "text-[#7AAAFF]" : "text-[rgba(232,228,218,0.40)]"
-                      }`}
-                    >
-                      {status === "All" ? "All Events" : status}
-                    </button>
-                  ))}
+                  {(["All", "Live now", "Upcoming", "Completed"] as const).map(
+                    (status) => (
+                      <button
+                        key={status}
+                        onClick={() => {
+                          setStatusFilter(status);
+                          setShowStatusDropdown(false);
+                        }}
+                        className={`w-full px-4 py-2.5 text-xs text-left hover:bg-[rgba(255,255,255,0.03)] transition-all ${
+                          statusFilter === status
+                            ? "text-[#7AAAFF]"
+                            : "text-[rgba(232,228,218,0.40)]"
+                        }`}
+                      >
+                        {status === "All" ? "All Events" : status}
+                      </button>
+                    ),
+                  )}
                 </div>
               )}
             </div>
@@ -304,11 +352,8 @@ export default function MyEventsPage() {
 
           <button
             onClick={() => router.push("/events/create")}
-            className="px-6 py-3 bg-[#4A7AFF] rounded-lg flex items-center text-white text-sm font-medium gap-2 hover:opacity-90 transition-all shadow-[0_0_12px_rgba(74,122,255,0.25)]"
+            className="px-4 py-2 bg-[#4A7AFF] rounded-lg text-white text-sm font-medium hover:opacity-90 transition-all"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
             Create
           </button>
         </div>
@@ -383,8 +428,12 @@ export default function MyEventsPage() {
 
                     {/* Status badge on image (mobile) */}
                     <div className="absolute top-3 left-3 md:hidden">
-                      <span className={`${sc.bg} ${sc.text} px-2 py-0.5 rounded-full text-[10px] font-[DM_Sans] font-medium flex items-center gap-1.5`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
+                      <span
+                        className={`${sc.bg} ${sc.text} px-2 py-0.5 rounded-full text-[10px] font-[DM_Sans] font-medium flex items-center gap-1.5`}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${sc.dot}`}
+                        />
                         {event.status}
                       </span>
                     </div>
@@ -395,15 +444,25 @@ export default function MyEventsPage() {
                     <div>
                       {/* Meta row */}
                       <div className="flex items-center gap-3 mb-1.5">
-                        <span className="text-[11px] font-[DM_Sans] text-[rgba(232,228,218,0.35)]">{event.date}</span>
+                        <span className="text-[11px] font-[DM_Sans] text-[rgba(232,228,218,0.35)]">
+                          {event.date}
+                        </span>
                         <span className="w-1 h-1 rounded-full bg-[rgba(232,228,218,0.15)]" />
-                        <span className="text-[11px] font-[DM_Sans] text-[rgba(232,228,218,0.35)]">{event.time}</span>
+                        <span className="text-[11px] font-[DM_Sans] text-[rgba(232,228,218,0.35)]">
+                          {event.time}
+                        </span>
                         <span className="w-1 h-1 rounded-full bg-[rgba(232,228,218,0.15)]" />
-                        <span className="text-[11px] font-[DM_Sans] text-[rgba(232,228,218,0.35)] truncate">{event.location}</span>
+                        <span className="text-[11px] font-[DM_Sans] text-[rgba(232,228,218,0.35)] truncate">
+                          {event.location}
+                        </span>
 
                         {/* Status badge on desktop */}
-                        <span className={`${sc.bg} ${sc.text} hidden md:inline-flex px-2 py-0.5 rounded-full text-[10px] font-[DM_Sans] font-medium items-center gap-1.5 ml-auto`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
+                        <span
+                          className={`${sc.bg} ${sc.text} hidden md:inline-flex px-2 py-0.5 rounded-full text-[10px] font-[DM_Sans] font-medium items-center gap-1.5 ml-auto`}
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${sc.dot}`}
+                          />
                           {event.status}
                         </span>
                       </div>
@@ -420,7 +479,9 @@ export default function MyEventsPage() {
                     <div className="flex items-center justify-between mt-4 pt-3 border-t border-[rgba(255,255,255,0.06)]">
                       <div className="flex items-center gap-3">
                         <span className="text-[rgba(232,228,218,0.50)] text-sm font-medium">
-                          {event.price > 0 ? `Rs. ${event.price.toLocaleString()}` : "Free"}
+                          {event.price > 0
+                            ? `Rs. ${event.price.toLocaleString()}`
+                            : "Free"}
                         </span>
                         <span className="text-[11px] font-[DM_Sans] text-[rgba(232,228,218,0.25)]">
                           {event.totalSeats} seats
@@ -432,7 +493,9 @@ export default function MyEventsPage() {
 
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => router.push(`/events/edit/${event._id}`)}
+                          onClick={() =>
+                            router.push(`/events/edit/${event._id}`)
+                          }
                           className="px-5 py-2.5 bg-[rgba(74,122,255,0.10)] hover:bg-[rgba(74,122,255,0.20)] rounded-lg text-xs font-[DM_Sans] font-medium text-[#7AAAFF] transition-all"
                         >
                           Edit
@@ -463,7 +526,10 @@ export default function MyEventsPage() {
               </span>
               {filteredEvents.length < events.length && (
                 <button
-                  onClick={() => { setSearchQuery(""); setStatusFilter("All"); }}
+                  onClick={() => {
+                    setSearchQuery("");
+                    setStatusFilter("All");
+                  }}
                   className="text-[11px] font-[DM_Sans] text-[rgba(74,122,255,0.6)] hover:text-[#7AAAFF] transition-colors"
                 >
                   Clear filters
@@ -486,19 +552,32 @@ export default function MyEventsPage() {
           >
             <div className="flex items-start gap-4 mb-5">
               <div className="w-10 h-10 rounded-full bg-[rgba(255,75,75,0.12)] flex items-center justify-center shrink-0">
-                <svg className="w-5 h-5 text-[#FF4B4B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                <svg
+                  className="w-5 h-5 text-[#FF4B4B]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+                  />
                 </svg>
               </div>
               <div>
-                <h3 className="text-[#E8E4DA] text-base font-['Playfair_Display'] font-semibold">Delete Event</h3>
+                <h3 className="text-[#E8E4DA] text-base font-['Playfair_Display'] font-semibold">
+                  Delete Event
+                </h3>
                 <p className="text-[rgba(232,228,218,0.35)] text-xs font-[DM_Sans] mt-0.5">
                   This action cannot be undone.
                 </p>
               </div>
             </div>
             <p className="text-[rgba(232,228,218,0.50)] text-sm font-[DM_Sans] mb-6 leading-relaxed">
-              Are you sure you want to permanently delete this event and all its associated data?
+              Are you sure you want to permanently delete this event and all its
+              associated data?
             </p>
             <div className="flex justify-end gap-3">
               <button
@@ -515,9 +594,24 @@ export default function MyEventsPage() {
               >
                 {deleting ? (
                   <>
-                    <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    <svg
+                      className="w-3.5 h-3.5 animate-spin"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                      />
                     </svg>
                     Deleting...
                   </>
@@ -529,7 +623,6 @@ export default function MyEventsPage() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

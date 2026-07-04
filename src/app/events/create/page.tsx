@@ -33,7 +33,7 @@ export default function CreateEventPage() {
       router.push("/auth/login");
     } else {
       setCheckedAuth(true);
-      const timer = setTimeout(() => setLoading(false), 1500);
+      const timer = setTimeout(() => setLoading(false), 500);
       return () => clearTimeout(timer);
     }
   }, []);

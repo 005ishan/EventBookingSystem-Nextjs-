@@ -4,9 +4,15 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import AuthenticatedNavbar from "@/components/AuthenticatedNavbar";
 import { isAuthenticated } from "@/services/authService";
-import { getEventById, updateEvent, uploadEventImage } from "@/services/eventService";
+import {
+  getEventById,
+  updateEvent,
+  uploadEventImage,
+} from "@/services/eventService";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:5000";
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
+  "http://localhost:5000";
 
 export default function EditEventPage() {
   const params = useParams();
@@ -91,7 +97,13 @@ export default function EditEventPage() {
 
   async function handleSave() {
     setError("");
-    if (!form.title.trim() || !form.description.trim() || !form.location.trim() || !form.date || !form.time) {
+    if (
+      !form.title.trim() ||
+      !form.description.trim() ||
+      !form.location.trim() ||
+      !form.date ||
+      !form.time
+    ) {
       setError("Please fill in all required fields");
       return;
     }
@@ -122,10 +134,14 @@ export default function EditEventPage() {
 
   if (!isAuthenticated()) return null;
 
-  const inputClass = "w-full h-11 px-4 bg-[rgba(255,255,255,0.04)] rounded-lg outline outline-1 outline-[rgba(255,255,255,0.08)] text-[#E8E4DA] text-sm font-[DM_Sans] placeholder:text-[rgba(232,228,218,0.22)] focus:outline-[rgba(74,122,255,0.5)] transition-all";
-  const textareaClass = "w-full px-4 py-3 bg-[rgba(255,255,255,0.04)] rounded-lg outline outline-1 outline-[rgba(255,255,255,0.08)] text-[#E8E4DA] text-sm font-[DM_Sans] placeholder:text-[rgba(232,228,218,0.22)] focus:outline-[rgba(74,122,255,0.5)] resize-none transition-all";
-  const labelClass = "text-[rgba(232,228,218,0.40)] text-xs font-[DM_Sans] mb-1.5 block tracking-[0.3px]";
-  const selectClass = "w-full h-11 px-4 bg-[rgba(255,255,255,0.04)] rounded-lg outline outline-1 outline-[rgba(255,255,255,0.08)] text-[#E8E4DA] text-sm font-[DM_Sans] focus:outline-[rgba(74,122,255,0.5)] transition-all [color-scheme:dark]";
+  const inputClass =
+    "w-full h-11 px-4 bg-[rgba(255,255,255,0.04)] rounded-lg outline outline-1 outline-[rgba(255,255,255,0.08)] text-[#E8E4DA] text-sm font-[DM_Sans] placeholder:text-[rgba(232,228,218,0.22)] focus:outline-[rgba(74,122,255,0.5)] transition-all";
+  const textareaClass =
+    "w-full px-4 py-3 bg-[rgba(255,255,255,0.04)] rounded-lg outline outline-1 outline-[rgba(255,255,255,0.08)] text-[#E8E4DA] text-sm font-[DM_Sans] placeholder:text-[rgba(232,228,218,0.22)] focus:outline-[rgba(74,122,255,0.5)] resize-none transition-all";
+  const labelClass =
+    "text-[rgba(232,228,218,0.40)] text-xs font-[DM_Sans] mb-1.5 block tracking-[0.3px]";
+  const selectClass =
+    "w-full h-11 px-4 bg-[rgba(255,255,255,0.04)] rounded-lg outline outline-1 outline-[rgba(255,255,255,0.08)] text-[#E8E4DA] text-sm font-[DM_Sans] focus:outline-[rgba(74,122,255,0.5)] transition-all [color-scheme:dark]";
 
   if (loading) {
     return (
@@ -175,17 +191,13 @@ export default function EditEventPage() {
       <div className="border-b border-[rgba(255,255,255,0.06)]">
         <div className="max-w-[1400px] mx-auto px-6 pt-10 pb-6">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-1 h-5 bg-[#4A7AFF] rounded-full" />
             <span className="text-[11px] font-[DM_Sans] uppercase tracking-[1.5px] text-[rgba(232,228,218,0.35)]">
               Edit Event
             </span>
           </div>
 
           <h1 className="text-[#E8E4DA] text-3xl font-['Playfair_Display'] font-semibold leading-tight">
-            Edit{" "}
-            <span className="text-[#4A7AFF]">
-              Event
-            </span>
+            Edit <span className="text-[#4A7AFF]">Event</span>
           </h1>
           <p className="text-[rgba(232,228,218,0.30)] text-sm font-[DM_Sans] mt-1.5">
             Update your event details below
@@ -219,7 +231,9 @@ export default function EditEventPage() {
             <label className={labelClass}>Description</label>
             <textarea
               value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, description: e.target.value })
+              }
               placeholder="Describe what attendees can expect..."
               rows={4}
               className={textareaClass}
@@ -253,9 +267,13 @@ export default function EditEventPage() {
                 onChange={(e) => setForm({ ...form, category: e.target.value })}
                 className={selectClass}
               >
-                {["Festival", "Concert", "Social", "Charity", "Others"].map((c) => (
-                  <option key={c} value={c} className="bg-[#0D1223]">{c}</option>
-                ))}
+                {["Festival", "Concert", "Social", "Charity", "Others"].map(
+                  (c) => (
+                    <option key={c} value={c} className="bg-[#0D1223]">
+                      {c}
+                    </option>
+                  ),
+                )}
               </select>
             </div>
             <div>
@@ -274,7 +292,9 @@ export default function EditEventPage() {
               <input
                 type="number"
                 value={form.totalSeats}
-                onChange={(e) => setForm({ ...form, totalSeats: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, totalSeats: e.target.value })
+                }
                 placeholder="100"
                 min="1"
                 className={inputClass}
@@ -341,12 +361,26 @@ export default function EditEventPage() {
               ) : (
                 <>
                   <div className="w-12 h-12 rounded-full bg-[rgba(74,122,255,0.08)] flex items-center justify-center">
-                    <svg className="w-5 h-5 text-[rgba(74,122,255,0.5)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
+                    <svg
+                      className="w-5 h-5 text-[rgba(74,122,255,0.5)]"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={1.5}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z"
+                      />
                     </svg>
                   </div>
-                  <p className="text-[rgba(232,228,218,0.35)] text-sm font-[DM_Sans]">Click or drag to change image</p>
-                  <p className="text-[rgba(232,228,218,0.15)] text-xs font-[DM_Sans]">PNG, JPG up to 10MB</p>
+                  <p className="text-[rgba(232,228,218,0.35)] text-sm font-[DM_Sans]">
+                    Click or drag to change image
+                  </p>
+                  <p className="text-[rgba(232,228,218,0.15)] text-xs font-[DM_Sans]">
+                    PNG, JPG up to 10MB
+                  </p>
                 </>
               )}
 
@@ -354,9 +388,23 @@ export default function EditEventPage() {
               {(imagePreview || existingImage) && (
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-200 flex items-center justify-center">
                   <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
+                    <svg
+                      className="w-8 h-8 text-white"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={1.5}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"
+                      />
                     </svg>
                   </div>
                 </div>
@@ -383,10 +431,22 @@ export default function EditEventPage() {
         {/* ── Error ── */}
         {error && (
           <div className="mt-5 flex items-center gap-3 bg-[rgba(255,75,75,0.08)] outline outline-1 outline-[rgba(255,75,75,0.20)] rounded-lg px-4 py-3">
-            <svg className="w-4 h-4 text-[#FF4B4B] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            <svg
+              className="w-4 h-4 text-[#FF4B4B] shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+              />
             </svg>
-            <span className="text-[#FF4B4B] text-xs font-[DM_Sans]">{error}</span>
+            <span className="text-[#FF4B4B] text-xs font-[DM_Sans]">
+              {error}
+            </span>
           </div>
         )}
       </div>
@@ -416,7 +476,6 @@ export default function EditEventPage() {
           </button>
         </div>
       </div>
-
     </div>
   );
 }

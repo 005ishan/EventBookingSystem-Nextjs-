@@ -80,11 +80,17 @@ export default function EditProfilePage() {
     }
     setCheckedAuth(true);
 
-    Promise.all([
-      getProfile(),
-      new Promise((r) => setTimeout(r, 1500)),
-    ])
-      .then(([data]) => {
+    const start = Date.now();
+    const ensureMin = () => {
+      const elapsed = Date.now() - start;
+      if (elapsed < 500) {
+        return new Promise<void>((r) => setTimeout(r, 500 - elapsed));
+      }
+      return Promise.resolve();
+    };
+
+    getProfile()
+      .then((data) => {
         setFirstName(data.firstName || "");
         setLastName(data.lastName || "");
         setOrganizerName(data.organizerName || "");
@@ -96,7 +102,7 @@ export default function EditProfilePage() {
         console.error("Failed to load profile:", err);
         setMessage({ type: "error", text: "Failed to load profile. Please try again." });
       })
-      .finally(() => setLoading(false));
+      .finally(() => ensureMin().then(() => setLoading(false)));
   }, [router]);
 
   async function handleSave() {
