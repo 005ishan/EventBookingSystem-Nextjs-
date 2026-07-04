@@ -86,7 +86,7 @@ export default function EventDetailPage() {
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${event.image})` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0A0E1A] via-[#0A0E1A]/40 to-transparent" />
+        <div className="absolute inset-0 bg-[#0A0E1A]/80" />
       </div>
 
       <div className="max-w-[1200px] mx-auto px-6 md:px-12 -mt-20 relative z-10">
