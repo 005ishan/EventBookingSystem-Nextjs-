@@ -18,3 +18,8 @@ export async function getAllEvents(params = {}) {
   const res = await api.get("/events", { params });
   return res.data;
 }
+
+export async function getEventById(eventId) {
+  const res = await api.get(`/events/${eventId}`);
+  return res.data;
+}

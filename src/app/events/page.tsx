@@ -14,12 +14,14 @@ interface Attendee {
 }
 
 interface EventData {
+  _id: string;
   date: string;
   time: string;
   location: string;
   category: string;
   title: string;
   description: string;
+  price: string;
   organizer: string;
   createdById: string;
   attendees: Attendee[];
@@ -28,6 +30,7 @@ interface EventData {
 }
 
 function EventCard({ event, onOrganizerClick }: { event: EventData; onOrganizerClick: (id: string, name: string) => void }) {
+  const router = useRouter();
   return (
     <div className="w-[312px] h-[335px] bg-[#0D1223] overflow-hidden rounded-[14px] outline outline-1 outline-offset-[-1px] outline-[rgba(255,255,255,0.08)] flex flex-col shrink-0">
       <div
@@ -87,7 +90,10 @@ function EventCard({ event, onOrganizerClick }: { event: EventData; onOrganizerC
               {event.count}
             </span>
           </div>
-          <button className="px-[14px] py-[6px] bg-[rgba(74,122,255,0.14)] rounded-[7px] outline outline-1 outline-offset-[-1px] outline-[rgba(74,122,255,0.32)] hover:bg-[rgba(74,122,255,0.25)] transition-all">
+          <button
+            onClick={() => router.push(`/events/${event._id}`)}
+            className="px-[14px] py-[6px] bg-[rgba(74,122,255,0.14)] rounded-[7px] outline outline-1 outline-offset-[-1px] outline-[rgba(74,122,255,0.32)] hover:bg-[rgba(74,122,255,0.25)] transition-all"
+          >
             <span className="text-[12px] font-[DM_Sans] font-medium text-[#7AAAFF]">
               View Details ❗
             </span>
@@ -112,12 +118,14 @@ function mapEvent(raw: any): EventData {
     raw.createdBy?.name ||
     "Organizer";
   return {
+    _id: raw._id,
     date: formatDate(raw.date),
     time: raw.time || "",
     location: raw.location || "",
     category: raw.category || "Others",
     title: raw.title,
     description: raw.description,
+    price: raw.price ? `Rs. ${raw.price}` : "",
     organizer: organizerName,
     createdById: raw.createdBy?._id || "",
     attendees: [{ initial: organizerName.charAt(0).toUpperCase(), color: "#4A7AFF" }],
