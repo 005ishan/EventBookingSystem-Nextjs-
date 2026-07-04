@@ -39,7 +39,7 @@ export default function LoginPage() {
           >
             <span className="text-[#E8E4DA] text-xl font-bold">
               Event
-              <span className="bg-gradient-to-r from-[#4A7AFF] to-[#bcb6fc] bg-clip-text text-transparent">
+              <span className="text-[#4A7AFF]">
                 Booking
               </span>
               System
