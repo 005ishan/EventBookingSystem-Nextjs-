@@ -47,6 +47,15 @@ export default function SignupPage() {
     try {
       const fullName = `${firstName} ${lastName}`.trim();
       const data = await registerUser(fullName, email, password);
+
+      // Dev mode — auto-verified, redirect straight to dashboard
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
+        router.push("/dashboard");
+        return;
+      }
+
       setShowOtp(true);
       alert(data.message || "OTP sent to your email. Please verify.");
     } catch (err: any) {
