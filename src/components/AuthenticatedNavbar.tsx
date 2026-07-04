@@ -44,13 +44,13 @@ export default function AuthenticatedNavbar() {
   }
 
   return (
-    <nav className="grid grid-cols-3 items-center self-stretch bg-[#050811] py-[27px] px-12 flex-shrink-0 border-b border-[#1A2040]">
+    <nav className="grid grid-cols-3 items-center self-stretch bg-[#0D1223] py-[27px] px-12 flex-shrink-0 border-b border-[rgba(255,255,255,0.08)] sticky top-0 z-50">
       <span
         className="text-[#E8E4DA] text-xl font-bold justify-self-start cursor-pointer"
         onClick={() => router.push("/dashboard")}
       >
         Event
-        <span className="bg-gradient-to-r from-[#4A7AFF] to-[#bcb6fc] bg-clip-text text-transparent">
+        <span className="text-[#4A7AFF]">
           Booking
         </span>
         System
@@ -86,7 +86,7 @@ export default function AuthenticatedNavbar() {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-br from-[#4A7AFF] to-[#bcb6fc] flex items-center justify-center text-white text-xs font-bold">
+              <div className="w-full h-full bg-[#4A7AFF] flex items-center justify-center text-white text-xs font-bold">
                 {initials}
               </div>
             )}
@@ -144,6 +144,28 @@ export default function AuthenticatedNavbar() {
                   />
                 </svg>
                 Create Events
+              </button>
+              <button
+                className="flex items-center gap-3 w-full px-4 py-2.5 text-[#E8E4DA]/80 text-sm hover:bg-[#1A2040] transition-all text-left"
+                onClick={() => {
+                  setShowDropdown(false);
+                  router.push("/events/my-events");
+                }}
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"
+                  />
+                </svg>
+                Your Events
               </button>
               <button
                 className="flex items-center gap-3 w-full px-4 py-2.5 text-[#E8E4DA]/80 text-sm hover:bg-[#1A2040] transition-all text-left"

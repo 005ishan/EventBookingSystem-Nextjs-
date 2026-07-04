@@ -8,9 +8,9 @@ export default function Navbar() {
   const pathname = usePathname();
 
   return (
-    <nav className="grid grid-cols-3 items-center self-stretch bg-[#050811] py-[27px] px-12 flex-shrink-0 border-b border-[#1A2040]">
+    <nav className="grid grid-cols-3 items-center self-stretch bg-[#0D1223] py-[27px] px-12 flex-shrink-0 border-b border-[rgba(255,255,255,0.08)] sticky top-0 z-50">
       <span className="text-[#E8E4DA] text-xl font-bold justify-self-start cursor-pointer" onClick={() => router.push("/")}>
-        Event<span className="bg-gradient-to-r from-[#4A7AFF] to-[#bcb6fc] bg-clip-text text-transparent">Booking</span>System
+        Event<span className="text-[#4A7AFF]">Booking</span>System
       </span>
       <div className="flex justify-center items-center gap-2">
         <NavLink text="Home" isActive={pathname === "/"} href="/" />
