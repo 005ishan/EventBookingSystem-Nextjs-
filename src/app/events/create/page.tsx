@@ -282,6 +282,28 @@ export default function CreateEventPage() {
               </div>
             )}
 
+            {ticketType === "free" && (
+              <div className="mb-5 flex items-center gap-2 px-4 py-3 bg-green-500/10 rounded-lg border border-green-500/20">
+                <svg className="w-4 h-4 text-green-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-green-400 text-xs">
+                  This event is free — attendees won't be charged anything.
+                </span>
+              </div>
+            )}
+
+            {ticketType === "donation" && (
+              <div className="mb-5 flex items-center gap-2 px-4 py-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                <svg className="w-4 h-4 text-purple-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-purple-400 text-xs">
+                  Attendees can choose to donate any amount they wish.
+                </span>
+              </div>
+            )}
+
             <label className="text-gray-400 text-sm mb-1 block">Currency</label>
             <div className="w-full h-11 px-4 bg-white/5 rounded-lg border border-gray-700 flex items-center text-white text-sm">
               Rs - Nepalese Rupees

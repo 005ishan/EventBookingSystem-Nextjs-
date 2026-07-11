@@ -7,10 +7,37 @@ import BookingModal from "@/components/BookingModal";
 import { isAuthenticated } from "@/services/authService";
 import { getEventById } from "@/services/eventService";
 import { initiateEsewaPayment, submitToEsewa } from "@/services/esewaService";
+import api from "@/services/api";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
   "http://localhost:5000";
+
+type EventStatus = "Live now" | "Upcoming" | "Completed";
+
+function getEventStatus(dateRaw: string, timeRaw?: string): EventStatus {
+  const now = new Date();
+  const eventDate = new Date(dateRaw);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const eventDay = new Date(
+    eventDate.getFullYear(),
+    eventDate.getMonth(),
+    eventDate.getDate(),
+  );
+  const diff = eventDay.getTime() - today.getTime();
+  if (diff > 0) return "Upcoming";
+  if (diff < 0) return "Completed";
+
+  if (timeRaw) {
+    const [hours, minutes] = timeRaw.split(":").map(Number);
+    if (!isNaN(hours) && !isNaN(minutes)) {
+      const eventDateTime = new Date(eventDay);
+      eventDateTime.setHours(hours, minutes, 0, 0);
+      if (now.getTime() < eventDateTime.getTime()) return "Upcoming";
+    }
+  }
+  return "Live now";
+}
 
 export default function EventDetailPage() {
   const params = useParams();
@@ -20,7 +47,7 @@ export default function EventDetailPage() {
   const [checkedAuth, setCheckedAuth] = useState(false);
   const [bookingOpen, setBookingOpen] = useState(false);
   const [bookingState, setBookingState] = useState<
-    "idle" | "processing" | "redirecting" | "error"
+    "idle" | "processing" | "redirecting" | "success" | "error"
   >("idle");
   const [bookingMessage, setBookingMessage] = useState("");
 
@@ -79,6 +106,7 @@ export default function EventDetailPage() {
           availableSeats: e.availableSeats,
           image,
           organizer,
+          status: getEventStatus(e.date, e.time),
         });
         setLoading(false);
       } catch {
@@ -98,26 +126,49 @@ export default function EventDetailPage() {
     async (qty: number) => {
       setBookingOpen(false);
       setBookingState("processing");
-      setBookingMessage("Initiating payment with eSewa...");
 
-      try {
-        const res = await initiateEsewaPayment(params.id as string, qty);
-        setBookingState("redirecting");
-        setBookingMessage("Redirecting to eSewa...");
+      const isFree = event?.price === 0 || event?.price === "0";
 
-        // Short delay so the user sees the message before redirect
-        setTimeout(() => {
-          submitToEsewa(res.gatewayUrl, res.formData);
-        }, 800);
-      } catch (err: any) {
-        const msg =
-          err.response?.data?.message ||
-          "Failed to initiate payment. Please try again.";
-        setBookingState("error");
-        setBookingMessage(msg);
+      if (isFree) {
+        setBookingMessage("Confirming your free booking...");
+        try {
+          const res = await api.post("/bookings", {
+            eventId: params.id,
+            seats: qty,
+          });
+          setBookingState("success");
+          setBookingMessage("Booking confirmed! You're all set.");
+          setTimeout(() => {
+            setBookingMessage("");
+            setBookingState("idle");
+          }, 3000);
+        } catch (err: any) {
+          const msg =
+            err.response?.data?.message ||
+            "Failed to book. Please try again.";
+          setBookingState("error");
+          setBookingMessage(msg);
+        }
+      } else {
+        setBookingMessage("Initiating payment with eSewa...");
+        try {
+          const res = await initiateEsewaPayment(params.id as string, qty);
+          setBookingState("redirecting");
+          setBookingMessage("Redirecting to eSewa...");
+
+          setTimeout(() => {
+            submitToEsewa(res.gatewayUrl, res.formData);
+          }, 800);
+        } catch (err: any) {
+          const msg =
+            err.response?.data?.message ||
+            "Failed to initiate payment. Please try again.";
+          setBookingState("error");
+          setBookingMessage(msg);
+        }
       }
     },
-    [params.id],
+    [params.id, event?.price],
   );
 
   if (!checkedAuth) return null;
@@ -140,7 +191,6 @@ export default function EventDetailPage() {
       <AuthenticatedNavbar />
 
       <div className="relative w-full h-[300px] md:h-[422px] overflow-hidden">
-        {/* Back button */}
         <button
           onClick={() => router.push("/events")}
           className="absolute top-6 left-6 z-20 w-9 h-9 rounded-lg bg-[rgba(0,0,0,0.5)] backdrop-blur-sm flex items-center justify-center hover:bg-[rgba(0,0,0,0.7)] transition-all"
@@ -157,9 +207,9 @@ export default function EventDetailPage() {
       </div>
 
       <div className="max-w-[1200px] mx-auto px-6 md:px-12 -mt-20 relative z-10">
-        {/* Booking status banner */}
         {(bookingState === "processing" ||
           bookingState === "redirecting" ||
+          bookingState === "success" ||
           bookingState === "error") && (
           <div
             className={`mb-6 px-5 py-4 rounded-xl border text-sm flex items-center gap-3 ${
@@ -207,6 +257,21 @@ export default function EventDetailPage() {
                 />
               </svg>
             )}
+            {bookingState === "success" && (
+              <svg
+                className="w-5 h-5 shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            )}
             <span className="font-[DM_Sans]">{bookingMessage}</span>
           </div>
         )}
@@ -222,24 +287,35 @@ export default function EventDetailPage() {
           </div>
 
           <div className="flex items-center gap-4">
-            <span className="text-[#3BA67C] text-2xl font-[DM_Sans] font-semibold">
-              Rs. {event.price}
-            </span>
-            <button
-              onClick={handleBookNow}
-              disabled={
-                bookingState === "processing" ||
-                bookingState === "redirecting"
-              }
-              className="px-6 py-3 bg-[#3BA67C] rounded-lg hover:bg-[#2d8e68] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <span className="text-white text-sm font-medium">
-                {bookingState === "processing" ||
-                bookingState === "redirecting"
-                  ? "Processing..."
-                  : "Book Now"}
+            {event.status !== "Completed" ? (
+              <>
+                <span className="text-[#3BA67C] text-2xl font-[DM_Sans] font-semibold">
+                  {event.price === 0 || event.price === "0" ? "Free" : `Rs. ${event.price.toLocaleString()}`}
+                </span>
+                <button
+                  onClick={handleBookNow}
+                  disabled={
+                    bookingState === "processing" ||
+                    bookingState === "redirecting"
+                  }
+                  className="px-6 py-3 bg-[#3BA67C] rounded-lg hover:bg-[#2d8e68] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span className="text-white text-sm font-medium">
+                    {bookingState === "processing" ||
+                    bookingState === "redirecting"
+                      ? "Processing..."
+                      : "Book Now"}
+                  </span>
+                </button>
+              </>
+            ) : (
+              <span className="px-4 py-2 bg-[rgba(59,166,124,0.10)] rounded-lg text-[#3BA67C] text-sm font-medium flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Event Completed
               </span>
-            </button>
+            )}
           </div>
         </div>
 
@@ -268,12 +344,11 @@ export default function EventDetailPage() {
         </div>
       </div>
 
-      {/* Booking Modal */}
       <BookingModal
         open={bookingOpen}
         onClose={() => setBookingOpen(false)}
         eventTitle={event.title}
-        eventPrice={`Rs. ${Number(event.price).toLocaleString()}`}
+        eventPrice={event.price === 0 || event.price === "0" ? "Free" : `Rs. ${Number(event.price).toLocaleString()}`}
         onConfirm={handleBookingConfirm}
       />
     </div>

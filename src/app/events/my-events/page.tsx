@@ -39,7 +39,7 @@ interface MyEvent {
   status: EventStatus;
 }
 
-function getEventStatus(dateRaw: string): EventStatus {
+function getEventStatus(dateRaw: string, timeRaw?: string): EventStatus {
   const now = new Date();
   const eventDate = new Date(dateRaw);
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -49,9 +49,18 @@ function getEventStatus(dateRaw: string): EventStatus {
     eventDate.getDate(),
   );
   const diff = eventDay.getTime() - today.getTime();
-  if (diff === 0) return "Live now";
   if (diff > 0) return "Upcoming";
-  return "Completed";
+  if (diff < 0) return "Completed";
+
+  if (timeRaw) {
+    const [hours, minutes] = timeRaw.split(":").map(Number);
+    if (!isNaN(hours) && !isNaN(minutes)) {
+      const eventDateTime = new Date(eventDay);
+      eventDateTime.setHours(hours, minutes, 0, 0);
+      if (now.getTime() < eventDateTime.getTime()) return "Upcoming";
+    }
+  }
+  return "Live now";
 }
 
 const statusColors: Record<
@@ -168,7 +177,7 @@ export default function MyEventsPage() {
           image: e.image
             ? `${API_BASE}${e.image}`
             : "/img/nepaltourism2024.jpg",
-          status: getEventStatus(e.date),
+          status: getEventStatus(e.date, e.time),
         }));
       setEvents(mapped);
     } catch {}
@@ -208,7 +217,6 @@ export default function MyEventsPage() {
     <div className="min-h-screen bg-[#0A0E1A]">
       <AuthenticatedNavbar />
 
-      {/* ── Header Section ── */}
       <div className="border-b border-[rgba(255,255,255,0.06)]">
         <div className="max-w-[1278px] mx-auto px-6 md:px-12 pt-12 pb-8">
           <div className="flex items-center gap-3 mb-2">
@@ -228,10 +236,8 @@ export default function MyEventsPage() {
         </div>
       </div>
 
-      {/* ── Toolbar ── */}
       <div className="border-b border-[rgba(255,255,255,0.06)]">
         <div className="max-w-[1278px] mx-auto px-6 md:px-12 py-4 flex items-center justify-between gap-4">
-          {/* Search toggle */}
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
@@ -283,7 +289,6 @@ export default function MyEventsPage() {
               </div>
             )}
 
-            {/* Status filter pills */}
             <div className="hidden md:flex items-center gap-1.5 ml-2">
               {(["All", "Live now", "Upcoming", "Completed"] as const).map(
                 (status) => (
@@ -304,7 +309,6 @@ export default function MyEventsPage() {
               )}
             </div>
 
-            {/* Mobile status dropdown */}
             <div className="md:hidden relative" ref={dropdownRef}>
               <button
                 onClick={() => setShowStatusDropdown(!showStatusDropdown)}
@@ -359,7 +363,6 @@ export default function MyEventsPage() {
         </div>
       </div>
 
-      {/* ── Events Grid / Empty / Loading ── */}
       <div className="max-w-[1278px] mx-auto px-6 md:px-12 py-8">
         {loading ? (
           <div className="flex flex-col gap-4">
@@ -385,7 +388,6 @@ export default function MyEventsPage() {
             ))}
           </div>
         ) : filteredEvents.length === 0 ? (
-          /* ── Empty State ── */
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-16 h-16 rounded-full bg-[rgba(74,122,255,0.08)] flex items-center justify-center mb-4">
               <span className="text-2xl opacity-40">✦</span>
@@ -410,7 +412,6 @@ export default function MyEventsPage() {
             )}
           </div>
         ) : (
-          /* ── Event Cards ── */
           <div className="flex flex-col gap-4">
             {filteredEvents.map((event) => {
               const sc = statusColors[event.status];
@@ -419,14 +420,12 @@ export default function MyEventsPage() {
                   key={event._id}
                   className="group bg-[#0D1223] rounded-xl outline outline-1 outline-[rgba(255,255,255,0.06)] hover:outline-[rgba(74,122,255,0.2)] overflow-hidden flex flex-col md:flex-row transition-all duration-200 hover:shadow-[0_0_20px_rgba(74,122,255,0.06)]"
                 >
-                  {/* Image */}
                   <div
                     className="w-full md:w-[220px] h-[140px] md:h-auto bg-cover bg-center shrink-0 relative overflow-hidden"
                     style={{ backgroundImage: `url(${event.image})` }}
                   >
                     <div className="absolute inset-0 bg-[#0D1223]/60" />
 
-                    {/* Status badge on image (mobile) */}
                     <div className="absolute top-3 left-3 md:hidden">
                       <span
                         className={`${sc.bg} ${sc.text} px-2 py-0.5 rounded-full text-[10px] font-[DM_Sans] font-medium flex items-center gap-1.5`}
@@ -439,10 +438,8 @@ export default function MyEventsPage() {
                     </div>
                   </div>
 
-                  {/* Content */}
                   <div className="flex-1 p-5 flex flex-col justify-between min-w-0">
                     <div>
-                      {/* Meta row */}
                       <div className="flex items-center gap-3 mb-1.5">
                         <span className="text-[11px] font-[DM_Sans] text-[rgba(232,228,218,0.35)]">
                           {event.date}
@@ -456,7 +453,6 @@ export default function MyEventsPage() {
                           {event.location}
                         </span>
 
-                        {/* Status badge on desktop */}
                         <span
                           className={`${sc.bg} ${sc.text} hidden md:inline-flex px-2 py-0.5 rounded-full text-[10px] font-[DM_Sans] font-medium items-center gap-1.5 ml-auto`}
                         >
@@ -475,7 +471,6 @@ export default function MyEventsPage() {
                       </p>
                     </div>
 
-                    {/* Bottom row */}
                     <div className="flex items-center justify-between mt-4 pt-3 border-t border-[rgba(255,255,255,0.06)]">
                       <div className="flex items-center gap-3">
                         <span className="text-[rgba(232,228,218,0.50)] text-sm font-medium">
@@ -515,7 +510,6 @@ export default function MyEventsPage() {
           </div>
         )}
 
-        {/* ── Count bar ── */}
         {!loading && filteredEvents.length > 0 && (
           <div className="mt-6 flex items-center justify-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-[rgba(255,255,255,0.02)] rounded-full outline outline-1 outline-[rgba(255,255,255,0.06)]">
@@ -540,7 +534,6 @@ export default function MyEventsPage() {
         )}
       </div>
 
-      {/* ── Delete Confirmation Modal ── */}
       {deleteConfirm && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
