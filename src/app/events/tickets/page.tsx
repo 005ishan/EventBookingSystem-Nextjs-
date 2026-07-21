@@ -3,90 +3,68 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import AuthenticatedNavbar from "@/components/AuthenticatedNavbar";
-import Footer from "@/components/Footer";
 import Skeleton from "@/components/Skeleton";
 import { isAuthenticated } from "@/services/authService";
+import api from "@/services/api";
+
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
+  "http://localhost:5000";
+
+type EventStatus = "Live now" | "Upcoming" | "Completed";
 
 interface Ticket {
-  id: number;
+  id: string;
   eventName: string;
   eventCategory: string;
   ticketNumber: string;
   price: string;
   eventDate: string;
   eventTime: string;
-  status: string;
+  status: EventStatus;
   image: string;
+  seats: number;
+  bookingStatus: string;
 }
 
-const ticketsData: Ticket[] = [
-  {
-    id: 1,
-    eventName: "Nepal Tourism Festival",
-    eventCategory: "Tourism Event",
-    ticketNumber: "EBS-2026-00142",
-    price: "Rs. 200",
-    eventDate: "April 14 & 15, 2026",
-    eventTime: "2:00 PM",
-    status: "Live now",
-    image: "https://placehold.co/36x36",
-  },
-  {
-    id: 2,
-    eventName: "Nepal Tour 2026",
-    eventCategory: "Albatross tour",
-    ticketNumber: "EBS-2026-00199",
-    price: "Rs. 600",
-    eventDate: "March 19, 2026",
-    eventTime: "2:00 PM",
-    status: "Live now",
-    image: "https://placehold.co/36x36",
-  },
-  {
-    id: 3,
-    eventName: "Kathmandu Jazz Night",
-    eventCategory: "Music Event",
-    ticketNumber: "EBS-2026-00215",
-    price: "Rs. 1,200",
-    eventDate: "May 10, 2026",
-    eventTime: "7:00 PM",
-    status: "Upcoming",
-    image: "https://placehold.co/36x36",
-  },
-  {
-    id: 4,
-    eventName: "Himalayan Food Fest",
-    eventCategory: "Food Festival",
-    ticketNumber: "EBS-2026-00087",
-    price: "Rs. 500",
-    eventDate: "June 5, 2026",
-    eventTime: "10:00 AM",
-    status: "Upcoming",
-    image: "https://placehold.co/36x36",
-  },
-  {
-    id: 5,
-    eventName: "Comedy Night Special",
-    eventCategory: "Stand-up Comedy",
-    ticketNumber: "EBS-2026-00342",
-    price: "Rs. 800",
-    eventDate: "July 22, 2026",
-    eventTime: "6:30 PM",
-    status: "Completed",
-    image: "https://placehold.co/36x36",
-  },
-  {
-    id: 6,
-    eventName: "Pokhara Music Fest",
-    eventCategory: "Music Festival",
-    ticketNumber: "EBS-2026-00112",
-    price: "Rs. 1,500",
-    eventDate: "August 14, 2026",
-    eventTime: "4:00 PM",
-    status: "Upcoming",
-    image: "https://placehold.co/36x36",
-  },
+function getEventStatus(dateRaw: string, timeRaw?: string): EventStatus {
+  const now = new Date();
+  const eventDate = new Date(dateRaw);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const eventDay = new Date(
+    eventDate.getFullYear(),
+    eventDate.getMonth(),
+    eventDate.getDate(),
+  );
+  const diff = eventDay.getTime() - today.getTime();
+  if (diff > 0) return "Upcoming";
+  if (diff < 0) return "Completed";
+
+  if (timeRaw) {
+    const [hours, minutes] = timeRaw.split(":").map(Number);
+    if (!isNaN(hours) && !isNaN(minutes)) {
+      const eventDateTime = new Date(eventDay);
+      eventDateTime.setHours(hours, minutes, 0, 0);
+      if (now.getTime() < eventDateTime.getTime()) return "Upcoming";
+    }
+  }
+  return "Live now";
+}
+
+const months = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
+
+function formatDate(dateStr: string) {
+  const d = new Date(dateStr);
+  return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+}
+
+function formatTicketId(id: string) {
+  const short = id.slice(-6).toUpperCase();
+  return `EBS-2026-${short}`;
+}
 
 const statusStyles: Record<string, string> = {
   "Live now": "bg-red-500/10 text-red-400 outline-red-500/25",
@@ -94,10 +72,16 @@ const statusStyles: Record<string, string> = {
   Completed: "bg-green-500/10 text-green-400 outline-green-500/25",
 };
 
+const bookingStatusStyles: Record<string, string> = {
+  confirmed: "bg-green-500/10 text-green-400 outline-green-500/25",
+  cancelled: "bg-red-500/10 text-red-400 outline-red-500/25",
+};
+
 export default function TicketsPage() {
   const router = useRouter();
   const [checkedAuth, setCheckedAuth] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [tickets, setTickets] = useState<Ticket[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All status");
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
@@ -122,14 +106,66 @@ export default function TicketsPage() {
   useEffect(() => {
     if (!isAuthenticated()) {
       router.push("/auth/login");
-    } else {
-      setCheckedAuth(true);
-      const timer = setTimeout(() => setLoading(false), 1500);
-      return () => clearTimeout(timer);
+      return;
     }
+    setCheckedAuth(true);
+
+    let mounted = true;
+    const loadStart = Date.now();
+
+    api
+      .get("/bookings/my-bookings")
+      .then((res) => {
+        if (!mounted) return;
+        const bookings = res.data.bookings || [];
+        const mapped: Ticket[] = bookings.map((b: any) => {
+          const event = b.event || {};
+          const image = event.image
+            ? `${API_BASE}${event.image}`
+            : "https://placehold.co/36x36";
+          return {
+            id: b._id,
+            eventName: event.title || "Unknown Event",
+            eventCategory: event.category || "",
+            ticketNumber: formatTicketId(b._id),
+            price:
+              event.price === 0
+                ? "Free"
+                : `Rs. ${(event.price * b.seats).toLocaleString()}`,
+            eventDate: event.date ? formatDate(event.date) : "",
+            eventTime: event.time || "",
+            status: getEventStatus(event.date, event.time),
+            image,
+            seats: b.seats,
+            bookingStatus: b.status,
+          };
+        });
+        if (!mounted) return;
+        setTickets(mapped);
+
+        const elapsed = Date.now() - loadStart;
+        const remaining = Math.max(0, 500 - elapsed);
+        setTimeout(() => {
+          if (mounted) setLoading(false);
+        }, remaining);
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setTickets([]);
+
+        const elapsed = Date.now() - loadStart;
+        const remaining = Math.max(0, 500 - elapsed);
+        setTimeout(() => {
+          if (mounted) setLoading(false);
+        }, remaining);
+      });
+
+    return () => {
+      mounted = false;
+    };
   }, [router]);
 
-  const filteredTickets = ticketsData.filter((ticket) => {
+  const filteredTickets = tickets.filter((ticket) => {
     const matchesSearch =
       ticket.eventName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       ticket.ticketNumber.toLowerCase().includes(searchQuery.toLowerCase());
@@ -284,20 +320,29 @@ export default function TicketsPage() {
                       <img className="w-9 h-9 rounded-[10px] object-cover flex-shrink-0" src={ticket.image} alt={ticket.eventName} />
                       <div className="flex flex-col gap-0.5 min-w-0">
                         <span className="text-white text-sm font-medium truncate">{ticket.eventName}</span>
-                        <span className="text-gray-500 text-xs truncate">{ticket.eventCategory}</span>
+                        <span className="text-gray-500 text-xs truncate">
+                          {ticket.eventCategory}
+                          {ticket.seats > 1 && ` · ${ticket.seats} seats`}
+                        </span>
                       </div>
                     </div>
                     <div className="w-52 px-5 py-4 flex items-center">
                       <span className="px-2.5 py-[3px] bg-white/5 rounded-md border border-gray-700 text-gray-400 text-xs tracking-tight">{ticket.ticketNumber}</span>
                     </div>
                     <div className="w-28 px-5 py-4 flex items-center">
-                      <span className="text-white text-sm font-medium">{ticket.price}</span>
+                      <span className={`text-sm font-medium ${ticket.price === "Free" ? "text-green-400" : "text-white"}`}>{ticket.price}</span>
                     </div>
                     <div className="w-40 px-5 py-4 flex flex-col justify-center gap-0.5">
                       <span className="text-gray-300 text-sm">{ticket.eventDate}</span>
                       <span className="text-gray-500 text-xs">{ticket.eventTime}</span>
                     </div>
-                    <div className="ml-auto px-5 py-4 flex items-center">
+                    <div className="ml-auto px-5 py-4 flex items-center gap-2">
+                      {ticket.bookingStatus === "cancelled" && (
+                        <span className={`px-2.5 py-1 rounded-[100px] border text-xs font-medium inline-flex items-center gap-1.5 ${bookingStatusStyles.cancelled}`}>
+                          <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                          Cancelled
+                        </span>
+                      )}
                       <span className={`px-2.5 py-1 rounded-[100px] border text-xs font-medium inline-flex items-center gap-1.5 ${
                         statusStyles[ticket.status] || "bg-white/5 text-gray-500 border-gray-700"
                       }`}>
@@ -328,7 +373,7 @@ export default function TicketsPage() {
             <div className="bg-[#151B2B] rounded-xl border border-gray-700">
               <div className="flex justify-between items-center px-5 py-3.5">
                 <span className="text-gray-400 text-sm">
-                  Showing {filteredTickets.length} of {ticketsData.length} tickets
+                  Showing {filteredTickets.length} of {tickets.length} ticket{filteredTickets.length !== 1 ? "s" : ""}
                 </span>
                 <div className="flex items-center gap-1.5">
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
@@ -350,7 +395,6 @@ export default function TicketsPage() {
           </div>
         </div>
       </div>
-        <Footer />
     </div>
   );
 }

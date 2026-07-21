@@ -1,8 +1,2 @@
-"use client";
-
-import Skeleton from "@/components/Skeleton";
-
-export { SkeletonEventCard, SkeletonEventCardGrid, SkeletonProfile, SkeletonText, SkeletonAvatar, SkeletonRect } from "@/components/Skeleton";
-
-export default Skeleton;
-
+// DEAD CODE — This file is not imported anywhere (just re-exports Skeleton) and can be deleted.
+// See: frontend/src/components/LoadingSpinner.tsx

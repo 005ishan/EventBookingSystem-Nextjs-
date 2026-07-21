@@ -2,7 +2,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import AuthenticatedNavbar from "@/components/AuthenticatedNavbar";
-import Footer from "@/components/Footer";
 import { isAuthenticated, getUser } from "@/services/authService";
 import { getProfile, updateProfile, changePassword, uploadProfilePicture, removeProfilePicture } from "@/services/profileService";
 import { SkeletonProfile } from "@/components/Skeleton";
@@ -81,11 +80,17 @@ export default function EditProfilePage() {
     }
     setCheckedAuth(true);
 
-    Promise.all([
-      getProfile(),
-      new Promise((r) => setTimeout(r, 1500)),
-    ])
-      .then(([data]) => {
+    const start = Date.now();
+    const ensureMin = () => {
+      const elapsed = Date.now() - start;
+      if (elapsed < 500) {
+        return new Promise<void>((r) => setTimeout(r, 500 - elapsed));
+      }
+      return Promise.resolve();
+    };
+
+    getProfile()
+      .then((data) => {
         setFirstName(data.firstName || "");
         setLastName(data.lastName || "");
         setOrganizerName(data.organizerName || "");
@@ -97,7 +102,7 @@ export default function EditProfilePage() {
         console.error("Failed to load profile:", err);
         setMessage({ type: "error", text: "Failed to load profile. Please try again." });
       })
-      .finally(() => setLoading(false));
+      .finally(() => ensureMin().then(() => setLoading(false)));
   }, [router]);
 
   async function handleSave() {
@@ -213,7 +218,7 @@ export default function EditProfilePage() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center">
+                        <div className="w-full h-full bg-blue-500 flex items-center justify-center">
                           <span className="text-white text-4xl font-bold">
                             {(firstName || getUser()?.name || "U").charAt(0).toUpperCase()}
                           </span>
@@ -388,35 +393,37 @@ export default function EditProfilePage() {
               </button>
             </div>
 
-            <div className="bg-[#151B2B] rounded-xl border border-gray-700 px-9 py-6 flex justify-between items-center">
-              <p className="text-gray-400 text-xs">Changes are saved securely</p>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => router.push("/dashboard")}
-                  className="h-12 px-6 rounded-xl border border-gray-700 text-gray-400 text-sm hover:bg-white/5 transition-all"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="h-12 px-10 bg-blue-500 rounded-xl text-white text-base font-medium hover:bg-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {saving ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    "Save changes"
-                  )}
-                </button>
-              </div>
+            <div className="bg-[#151B2B] rounded-xl border border-gray-700 px-9 py-6">
+              <p className="text-gray-400 text-xs text-center">Changes are saved securely</p>
             </div>
           </>
         )}
       </div>
-      <Footer />
+
+      <div className="sticky bottom-0 bg-[#0D1223] border-t border-[rgba(255,255,255,0.08)] px-8 py-4 z-50">
+        <div className="max-w-[1500px] mx-auto flex items-center justify-between">
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="px-6 py-3 rounded-lg border border-[rgba(255,255,255,0.15)] text-white text-sm hover:bg-white/5 transition-all"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="px-8 py-3 bg-blue-500 rounded-xl text-white text-sm font-medium hover:bg-blue-600 transition-all disabled:opacity-50 flex items-center gap-2"
+          >
+            {saving ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Saving...
+              </>
+            ) : (
+              "Save changes"
+            )}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

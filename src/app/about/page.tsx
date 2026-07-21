@@ -35,7 +35,7 @@ export default function AboutPage() {
               <div className="flex flex-col items-center max-w-[700px] pt-2">
                 <h1 className="text-center text-[#E8E4DA] text-5xl md:text-6xl font-bold leading-[1.1]">
                   Built for people who{" "}
-                  <span className="bg-gradient-to-r from-[#4A7AFF] to-[#bcb6fc] bg-clip-text text-transparent">
+                  <span className="text-[#4A7AFF]">
                     love
                   </span>
                   <br />
@@ -99,7 +99,7 @@ export default function AboutPage() {
                       partner in creating moments that matter.
                     </p>
                   </div>
-                  <div className="flex-1 bg-gradient-to-br from-[#4A7AFF]/20 to-[#bcb6fc]/10 rounded-xl p-8 flex items-center justify-center">
+                  <div className="flex-1 bg-[#4A7AFF]/10 rounded-xl p-8 flex items-center justify-center">
                     <div className="text-center">
                       <div className="text-5xl mb-3"><img src="/img/target.jpg" alt="" /></div>
                       <p className="text-[#E4BDBA] text-sm italic">

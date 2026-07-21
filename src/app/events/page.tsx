@@ -8,32 +8,90 @@ import { isAuthenticated } from "@/services/authService";
 import { getAllEvents } from "@/services/eventService";
 import { SkeletonEventCardGrid } from "@/components/Skeleton";
 
-interface Attendee {
-  initial: string;
-  color: string;
-}
+type EventStatus = "Live now" | "Upcoming" | "Completed";
 
 interface EventData {
+  _id: string;
   date: string;
   time: string;
   location: string;
   category: string;
   title: string;
   description: string;
+  priceNum: number;
   organizer: string;
   createdById: string;
-  attendees: Attendee[];
-  count: string;
   image: string;
+  totalSeats: number;
+  availableSeats: number;
+  status: EventStatus;
+  dateRaw: string;
+}
+
+const statusColors: Record<
+  EventStatus,
+  { dot: string; bg: string; text: string }
+> = {
+  "Live now": {
+    dot: "bg-[#FF4B4B]",
+    bg: "bg-[rgba(255,75,75,0.12)]",
+    text: "text-[#FF4B4B]",
+  },
+  Upcoming: {
+    dot: "bg-[#4A7AFF]",
+    bg: "bg-[rgba(74,122,255,0.12)]",
+    text: "text-[#4A7AFF]",
+  },
+  Completed: {
+    dot: "bg-[#3BA67C]",
+    bg: "bg-[rgba(59,166,124,0.12)]",
+    text: "text-[#3BA67C]",
+  },
+};
+
+function getEventStatus(dateRaw: string, timeRaw?: string): EventStatus {
+  const now = new Date();
+  const eventDate = new Date(dateRaw);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const eventDay = new Date(
+    eventDate.getFullYear(),
+    eventDate.getMonth(),
+    eventDate.getDate(),
+  );
+  const diff = eventDay.getTime() - today.getTime();
+  if (diff > 0) return "Upcoming";
+  if (diff < 0) return "Completed";
+
+  if (timeRaw) {
+    const [hours, minutes] = timeRaw.split(":").map(Number);
+    if (!isNaN(hours) && !isNaN(minutes)) {
+      const eventDateTime = new Date(eventDay);
+      eventDateTime.setHours(hours, minutes, 0, 0);
+      if (now.getTime() < eventDateTime.getTime()) return "Upcoming";
+    }
+  }
+  return "Live now";
 }
 
 function EventCard({ event, onOrganizerClick }: { event: EventData; onOrganizerClick: (id: string, name: string) => void }) {
+  const router = useRouter();
   return (
     <div className="w-[312px] h-[335px] bg-[#0D1223] overflow-hidden rounded-[14px] outline outline-1 outline-offset-[-1px] outline-[rgba(255,255,255,0.08)] flex flex-col shrink-0">
       <div
         className="self-stretch h-[155px] relative overflow-hidden bg-cover bg-center"
         style={{ backgroundImage: `url(${event.image})` }}
       >
+        <div className="absolute inset-0 bg-[#0D1223]/60" />
+        <div className="absolute top-3 left-3">
+          <span
+            className={`${statusColors[event.status].bg} ${statusColors[event.status].text} px-2 py-0.5 rounded-full text-[10px] font-[DM_Sans] font-medium flex items-center gap-1.5`}
+          >
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${statusColors[event.status].dot}`}
+            />
+            {event.status}
+          </span>
+        </div>
         <div className="absolute right-[14px] top-[22px] opacity-[0.18]">
           <span className="text-[#E8E4DA] text-[110px] font-[DM_Sans] leading-none">🎤</span>
         </div>
@@ -61,37 +119,33 @@ function EventCard({ event, onOrganizerClick }: { event: EventData; onOrganizerC
             Event Organized by {event.organizer}
           </button>
         </div>
-        <p className="text-[12px] font-[DM_Sans] font-light leading-[19.20px] text-[rgba(232,228,218,0.38)]">
+        <p className="text-[12px] font-[DM_Sans] font-light leading-[19.20px] text-[rgba(232,228,218,0.38)] line-clamp-2">
           {event.description}
         </p>
         <div className="self-stretch pt-3 border-t border-[rgba(255,255,255,0.06)] flex items-center justify-between">
-          <div className="flex items-center gap-[5px]">
-            <div className="flex items-center">
-              {event.attendees.map((person, i) => (
-                <div
-                  key={i}
-                  className="w-[22px] h-[22px] rounded-full outline outline-1 outline-[#0D1223] outline-offset-[-1px] flex items-center justify-center"
-                  style={{
-                    backgroundColor: person.color,
-                    marginLeft: i > 0 ? "-6px" : "0",
-                    zIndex: 3 - i,
-                  }}
-                >
-                  <span className="text-white text-[9px] font-[DM_Sans] font-medium">
-                    {person.initial}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <span className="text-[11px] font-[DM_Sans] text-[rgba(232,228,218,0.32)] ml-[4px]">
-              {event.count}
+          <span className="text-[11px] font-[DM_Sans] text-[rgba(232,228,218,0.45)]">
+            {event.availableSeats} / {event.totalSeats} seats
+          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-[13px] font-[DM_Sans] font-semibold text-[#3BA67C]">
+              {event.priceNum === 0 ? "Free" : `Rs. ${event.priceNum.toLocaleString()}`}
             </span>
+            {event.status !== "Completed" && (
+              <button
+                onClick={() => router.push(`/events/${event._id}`)}
+                className="px-[14px] py-[6px] bg-[#3BA67C] rounded-[7px] hover:bg-[#2d8e68] transition-all"
+              >
+                <span className="text-[12px] font-[DM_Sans] font-medium text-white">
+                  Buy Tickets
+                </span>
+              </button>
+            )}
+            {event.status === "Completed" && (
+              <span className="text-[11px] font-[DM_Sans] text-[rgba(232,228,218,0.25)] italic">
+                Ended
+              </span>
+            )}
           </div>
-          <button className="px-[14px] py-[6px] bg-[rgba(74,122,255,0.14)] rounded-[7px] outline outline-1 outline-offset-[-1px] outline-[rgba(74,122,255,0.32)] hover:bg-[rgba(74,122,255,0.25)] transition-all">
-            <span className="text-[12px] font-[DM_Sans] font-medium text-[#7AAAFF]">
-              View Details ❗
-            </span>
-          </button>
         </div>
       </div>
     </div>
@@ -112,16 +166,20 @@ function mapEvent(raw: any): EventData {
     raw.createdBy?.name ||
     "Organizer";
   return {
+    _id: raw._id,
     date: formatDate(raw.date),
+    dateRaw: raw.date,
     time: raw.time || "",
     location: raw.location || "",
     category: raw.category || "Others",
     title: raw.title,
     description: raw.description,
+    priceNum: Number(raw.price) || 0,
     organizer: organizerName,
     createdById: raw.createdBy?._id || "",
-    attendees: [{ initial: organizerName.charAt(0).toUpperCase(), color: "#4A7AFF" }],
-    count: String(raw.totalSeats ?? 0),
+    totalSeats: raw.totalSeats ?? 0,
+    availableSeats: raw.availableSeats ?? 0,
+    status: getEventStatus(raw.date, raw.time),
     image: raw.image ? `${API_BASE}${raw.image}` : "/img/nepaltourism2024.jpg",
   };
 }
@@ -160,7 +218,6 @@ export default function EventsPage() {
       ]);
       const mapped: EventData[] = (data.events || []).map(mapEvent);
       setAllEvents(mapped);
-      // Build category counts
       const counts: Record<string, number> = {};
       mapped.forEach((e: EventData) => {
         counts[e.category] = (counts[e.category] || 0) + 1;
@@ -174,13 +231,18 @@ export default function EventsPage() {
     fetchEvents();
   }, [fetchEvents]);
 
-  const events = allEvents.filter((e) => {
-    if (filterOrganizer && e.createdById !== filterOrganizer.id) return false;
-    if (organizerSearch && !e.organizer.toLowerCase().includes(organizerSearch.toLowerCase())) return false;
-    if (locationSearch && !e.location.toLowerCase().includes(locationSearch.toLowerCase())) return false;
-    if (categoryFilter && e.category !== categoryFilter) return false;
-    return true;
-  });
+  const events = allEvents
+    .filter((e) => {
+      if (filterOrganizer && e.createdById !== filterOrganizer.id) return false;
+      if (organizerSearch && !e.organizer.toLowerCase().includes(organizerSearch.toLowerCase())) return false;
+      if (locationSearch && !e.location.toLowerCase().includes(locationSearch.toLowerCase())) return false;
+      if (categoryFilter && e.category !== categoryFilter) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      const priority: Record<EventStatus, number> = { "Live now": 0, Upcoming: 1, Completed: 2 };
+      return priority[a.status] - priority[b.status];
+    });
 
   const handleOrganizerClick = (id: string, name: string) => {
     setFilterOrganizer((prev) =>

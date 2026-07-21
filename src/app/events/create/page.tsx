@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import AuthenticatedNavbar from "@/components/AuthenticatedNavbar";
-import Footer from "@/components/Footer";
 import { SkeletonAuthenticatedPage } from "@/components/Skeleton";
 import { isAuthenticated } from "@/services/authService";
 import { createEvent, uploadEventImage } from "@/services/eventService";
@@ -34,7 +33,7 @@ export default function CreateEventPage() {
       router.push("/auth/login");
     } else {
       setCheckedAuth(true);
-      const timer = setTimeout(() => setLoading(false), 1500);
+      const timer = setTimeout(() => setLoading(false), 500);
       return () => clearTimeout(timer);
     }
   }, []);
@@ -152,9 +151,7 @@ export default function CreateEventPage() {
             <label className="text-gray-400 text-sm mb-1 block">Description</label>
             <textarea
               value={description}
-              onChange={(e) => {
-                if (e.target.value.length <= 500) setDescription(e.target.value);
-              }}
+              onChange={(e) => setDescription(e.target.value.slice(0, 500))}
               placeholder="Describe what attendees can expect..."
               rows={4}
               className="w-full px-4 py-3 bg-white/5 rounded-lg border border-gray-700 text-white text-sm outline-none focus:border-blue-500 resize-none mb-1"
@@ -285,6 +282,28 @@ export default function CreateEventPage() {
               </div>
             )}
 
+            {ticketType === "free" && (
+              <div className="mb-5 flex items-center gap-2 px-4 py-3 bg-green-500/10 rounded-lg border border-green-500/20">
+                <svg className="w-4 h-4 text-green-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-green-400 text-xs">
+                  This event is free — attendees won't be charged anything.
+                </span>
+              </div>
+            )}
+
+            {ticketType === "donation" && (
+              <div className="mb-5 flex items-center gap-2 px-4 py-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                <svg className="w-4 h-4 text-purple-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-purple-400 text-xs">
+                  Attendees can choose to donate any amount they wish.
+                </span>
+              </div>
+            )}
+
             <label className="text-gray-400 text-sm mb-1 block">Currency</label>
             <div className="w-full h-11 px-4 bg-white/5 rounded-lg border border-gray-700 flex items-center text-white text-sm">
               Rs - Nepalese Rupees
@@ -330,18 +349,25 @@ export default function CreateEventPage() {
           </div>
         )}
 
-        <div className="text-center">
+      </div>
+
+      <div className="sticky bottom-0 bg-[#0D1223] border-t border-[rgba(255,255,255,0.08)] px-8 py-4 z-50">
+        <div className="max-w-[1500px] mx-auto flex items-center justify-between">
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="px-6 py-3 rounded-lg border border-[rgba(255,255,255,0.15)] text-white text-sm hover:bg-white/5 transition-all"
+          >
+            Cancel
+          </button>
           <button
             onClick={handlePublish}
             disabled={publishing}
-            className="w-44 h-14 bg-blue-500 rounded-xl text-white text-base font-medium hover:bg-blue-600 disabled:opacity-50"
+            className="px-8 py-3 bg-blue-500 rounded-xl text-white text-sm font-medium hover:bg-blue-600 transition-all disabled:opacity-50"
           >
             {publishing ? "Publishing..." : "Publish event"}
           </button>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 }

@@ -7,7 +7,7 @@ interface SkeletonBase {
 function Shimmer({ className = "" }: { className?: string }) {
   return (
     <div className={`relative overflow-hidden bg-[rgba(255,255,255,0.06)] rounded-lg ${className}`}>
-      <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-[rgba(255,255,255,0.06)] to-transparent" />
+      <div className="absolute inset-0 bg-[rgba(255,255,255,0.04)]" />
     </div>
   );
 }

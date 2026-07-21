@@ -47,6 +47,15 @@ export default function SignupPage() {
     try {
       const fullName = `${firstName} ${lastName}`.trim();
       const data = await registerUser(fullName, email, password);
+
+      // Dev mode — auto-verified, redirect straight to dashboard
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
+        router.push("/dashboard");
+        return;
+      }
+
       setShowOtp(true);
       alert(data.message || "OTP sent to your email. Please verify.");
     } catch (err: any) {
@@ -86,7 +95,7 @@ export default function SignupPage() {
             >
               <span className="text-[#E8E4DA] text-xl font-bold">
                 Event
-                <span className="bg-gradient-to-r from-[#4A7AFF] to-[#bcb6fc] bg-clip-text text-transparent">
+                <span className="text-[#4A7AFF]">
                   Booking
                 </span>
                 System
@@ -162,9 +171,8 @@ export default function SignupPage() {
             className="flex flex-col items-center justify-center hover:opacity-80 transition-opacity"
           >
             <span className="text-[#E8E4DA] text-xl font-bold">
-              Event
-              <span className="bg-gradient-to-r from-[#4A7AFF] to-[#bcb6fc] bg-clip-text text-transparent">
-                Booking
+              Event              <span className="text-[#4A7AFF]">
+                  Booking
               </span>
               System
             </span>
