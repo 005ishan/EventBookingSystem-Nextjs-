@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import AuthenticatedNavbar from "@/components/AuthenticatedNavbar";
 import { isAuthenticated } from "@/services/authService";
 import { getAllEvents, deleteEvent } from "@/services/eventService";
+import { useToast } from "@/components/Toast";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
@@ -118,6 +119,7 @@ export default function MyEventsPage() {
   const [deleting, setDeleting] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { showToast } = useToast();
   const loadStart = useRef(0);
   const deleteStart = useRef(0);
 
@@ -198,7 +200,7 @@ export default function MyEventsPage() {
       await deleteEvent(eventId);
       setEvents((prev) => prev.filter((e) => e._id !== eventId));
     } catch {
-      alert("Failed to delete event");
+      showToast("Failed to delete event", "error");
     }
     await ensureMinDuration(deleteStart.current, 500);
     setDeleting(false);
