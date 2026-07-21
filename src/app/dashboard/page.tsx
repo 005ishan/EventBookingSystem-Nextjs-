@@ -169,6 +169,7 @@ export default function DashboardPage() {
   const upcomingEvents = allEvents.filter((e) => e.status === "Upcoming");
 
   function toCardProps(e: EventData) {
+    const filledPct = e.totalSeats > 0 ? (e.totalSeats - e.availableSeats) / e.totalSeats : 0;
     return {
       img: e.image,
       title: e.title,
@@ -177,6 +178,8 @@ export default function DashboardPage() {
       btn: "Book Now",
       date: e.status === "Live now" ? "LIVE NOW" : `${e.date} \u2022 ${e.time}`,
       organizer: e.organizer || undefined,
+      soldOut: e.availableSeats === 0,
+      trending: e.availableSeats > 0 && filledPct >= 0.7,
     };
   }
 

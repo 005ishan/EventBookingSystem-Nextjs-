@@ -16,11 +16,7 @@ export default function Footer() {
           <p className="text-[#E4BDBA] text-sm whitespace-pre-line">
             {"Connecting enthusiasts with the world's\nmost premium and exciting experiences.\nFrom intimate workshops to global\nfestivals."}
           </p>
-          <div className="flex items-center self-stretch gap-4">
-            <img src="https://storage.googleapis.com/tagjs-prod.appspot.com/v1/DTFWZiYh6s/xwthvtf6_expires_30_days.png" alt="" className="w-10 h-10 object-fill cursor-pointer hover:opacity-80" />
-            <img src="https://storage.googleapis.com/tagjs-prod.appspot.com/v1/DTFWZiYh6s/uka464q1_expires_30_days.png" alt="" className="w-10 h-10 object-fill cursor-pointer hover:opacity-80" />
-            <img src="https://storage.googleapis.com/tagjs-prod.appspot.com/v1/DTFWZiYh6s/188xzive_expires_30_days.png" alt="" className="w-10 h-10 object-fill cursor-pointer hover:opacity-80" />
-          </div>
+
         </div>
         <div className="flex flex-1 flex-col pb-[50px] gap-6">
           <h3 className="text-white text-base font-bold">Discover</h3>
