@@ -178,7 +178,11 @@ export default function MyEventsPage() {
             ? `${API_BASE}${e.image}`
             : "/img/nepaltourism2024.jpg",
           status: getEventStatus(e.date, e.time),
-        }));
+        }))
+        .sort((a, b) => {
+          const p: Record<EventStatus, number> = { "Live now": 0, Upcoming: 1, Completed: 2 };
+          return p[a.status] - p[b.status];
+        });
       setEvents(mapped);
     } catch {}
     await ensureMinDuration(loadStart.current, 500);

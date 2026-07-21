@@ -66,6 +66,28 @@ export function logout() {
 }
 
 /**
+ * Request a password reset OTP
+ * @param {string} email
+ * @returns {Promise<{message: string}>}
+ */
+export async function forgotPassword(email) {
+  const response = await api.post("/auth/forgot-password", { email });
+  return response.data;
+}
+
+/**
+ * Reset password with OTP
+ * @param {string} email
+ * @param {string} otp
+ * @param {string} newPassword
+ * @returns {Promise<{message: string}>}
+ */
+export async function resetPassword(email, otp, newPassword) {
+  const response = await api.post("/auth/reset-password", { email, otp, newPassword });
+  return response.data;
+}
+
+/**
  * Check if user is authenticated
  * @returns {boolean}
  */
