@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import AuthenticatedNavbar from "@/components/AuthenticatedNavbar";
 import { isAuthenticated } from "@/services/authService";
 import { getAllEvents, deleteEvent } from "@/services/eventService";
+import { useToast } from "@/components/Toast";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
@@ -35,6 +36,7 @@ interface MyEvent {
   location: string;
   price: number;
   totalSeats: number;
+  availableSeats: number;
   image: string;
   status: EventStatus;
 }
@@ -117,6 +119,7 @@ export default function MyEventsPage() {
   const [deleting, setDeleting] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { showToast } = useToast();
   const loadStart = useRef(0);
   const deleteStart = useRef(0);
 
@@ -174,6 +177,7 @@ export default function MyEventsPage() {
           location: e.location,
           price: Number(e.price) || 0,
           totalSeats: e.totalSeats,
+          availableSeats: e.availableSeats,
           image: e.image
             ? `${API_BASE}${e.image}`
             : "/img/nepaltourism2024.jpg",
@@ -196,7 +200,7 @@ export default function MyEventsPage() {
       await deleteEvent(eventId);
       setEvents((prev) => prev.filter((e) => e._id !== eventId));
     } catch {
-      alert("Failed to delete event");
+      showToast("Failed to delete event", "error");
     }
     await ensureMinDuration(deleteStart.current, 500);
     setDeleting(false);
@@ -419,10 +423,17 @@ export default function MyEventsPage() {
           <div className="flex flex-col gap-4">
             {filteredEvents.map((event) => {
               const sc = statusColors[event.status];
+              const soldOut = event.totalSeats > 0 && event.availableSeats === 0;
+              const filledPct = event.totalSeats > 0 ? (event.totalSeats - event.availableSeats) / event.totalSeats : 0;
+              const trending = !soldOut && filledPct >= 0.7;
               return (
                 <div
                   key={event._id}
-                  className="group bg-[#0D1223] rounded-xl outline outline-1 outline-[rgba(255,255,255,0.06)] hover:outline-[rgba(74,122,255,0.2)] overflow-hidden flex flex-col md:flex-row transition-all duration-200 hover:shadow-[0_0_20px_rgba(74,122,255,0.06)]"
+                  className={`group rounded-xl overflow-hidden flex flex-col md:flex-row transition-all duration-200 ${
+                    soldOut
+                      ? "bg-[#0B0F1C] opacity-70 outline outline-1 outline-[rgba(255,255,255,0.04)]"
+                      : "bg-[#0D1223] outline outline-1 outline-[rgba(255,255,255,0.06)] hover:outline-[rgba(74,122,255,0.2)] hover:shadow-[0_0_20px_rgba(74,122,255,0.06)]"
+                  }`}
                 >
                   <div
                     className="w-full md:w-[220px] h-[140px] md:h-auto bg-cover bg-center shrink-0 relative overflow-hidden"
@@ -430,7 +441,17 @@ export default function MyEventsPage() {
                   >
                     <div className="absolute inset-0 bg-[#0D1223]/60" />
 
-                    <div className="absolute top-3 left-3 md:hidden">
+                    <div className="absolute top-3 left-3 flex gap-1.5">
+                      {trending && (
+                        <span className="bg-[#FF4B4B] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg">
+                          Trending
+                        </span>
+                      )}
+                      {soldOut && (
+                        <span className="bg-[rgba(0,0,0,0.65)] text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm">
+                          Sold Out
+                        </span>
+                      )}
                       <span
                         className={`${sc.bg} ${sc.text} px-2 py-0.5 rounded-full text-[10px] font-[DM_Sans] font-medium flex items-center gap-1.5`}
                       >

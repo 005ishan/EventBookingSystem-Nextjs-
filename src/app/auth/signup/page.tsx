@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { registerUser, verifyOtp } from "@/services/authService";
+import { useToast } from "@/components/Toast";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -23,6 +24,7 @@ export default function SignupPage() {
   const [showOtp, setShowOtp] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpLoading, setOtpLoading] = useState(false);
+  const { showToast } = useToast();
 
   async function handleSignup() {
     setError("");
@@ -37,8 +39,23 @@ export default function SignupPage() {
       return;
     }
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters");
+      return;
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      setError("Password must contain at least one uppercase letter");
+      return;
+    }
+
+    if (!/[a-z]/.test(password)) {
+      setError("Password must contain at least one lowercase letter");
+      return;
+    }
+
+    if (!/[0-9]/.test(password)) {
+      setError("Password must contain at least one number");
       return;
     }
 
@@ -57,7 +74,7 @@ export default function SignupPage() {
       }
 
       setShowOtp(true);
-      alert(data.message || "OTP sent to your email. Please verify.");
+      showToast(data.message || "OTP sent to your email. Please verify.", "success");
     } catch (err: any) {
       const message =
         err.response?.data?.message || "Registration failed. Please try again.";
@@ -73,7 +90,7 @@ export default function SignupPage() {
 
     try {
       const data = await verifyOtp(email, otp);
-      alert(data.message || "Email verified successfully!");
+      showToast(data.message || "Email verified successfully!", "success");
       router.push("/auth/login");
     } catch (err: any) {
       const message =
@@ -303,8 +320,8 @@ export default function SignupPage() {
                 setPassword(e.target.value);
                 const pwd = e.target.value;
                 let score = 0;
-                if (pwd.length >= 6) score += 20;
-                if (pwd.length >= 10) score += 20;
+                if (pwd.length >= 8) score += 20;
+                if (pwd.length >= 12) score += 20;
                 if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) score += 20;
                 if (/[0-9]/.test(pwd)) score += 20;
                 if (/[^a-zA-Z0-9]/.test(pwd)) score += 20;

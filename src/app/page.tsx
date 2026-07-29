@@ -5,11 +5,10 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import AuthenticatedNavbar from "@/components/AuthenticatedNavbar";
 import EventCard from "@/components/EventCard";
-import AuthModal from "@/components/AuthModal";
 import Footer from "@/components/Footer";
 import { SkeletonLandingPage } from "@/components/Skeleton";
 import { getAllEvents } from "@/services/eventService";
-import { isAuthenticated, getUser } from "@/services/authService";
+import { isAuthenticated } from "@/services/authService";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:5000";
 
@@ -68,7 +67,6 @@ export default function LandingPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [currentFeatured, setCurrentFeatured] = useState(0);
-  const [showModal, setShowModal] = useState(false);
   const [allEvents, setAllEvents] = useState<EventData[]>([]);
 
   const touchStartX = useRef<number | null>(null);
@@ -119,7 +117,6 @@ export default function LandingPage() {
   }
 
   const loggedIn = isAuthenticated();
-  const user = getUser();
 
   useEffect(() => {
     async function fetchEvents() {
@@ -163,26 +160,24 @@ export default function LandingPage() {
   }, [currentFeatured, allEvents.length]);
 
   function handleCardAction(eventId: string) {
-    if (loggedIn) {
-      router.push(`/events/${eventId}`);
-    } else {
-      setShowModal(true);
-    }
+    router.push(`/events/${eventId}`);
   }
 
   const featured = allEvents.slice(0, 3);
   const liveEvents = allEvents.filter((e) => e.status === "Live now");
-  const upcomingEvents = allEvents.filter((e) => e.status === "Upcoming");
-
-  function toCardProps(e: EventData) {
+  const upcomingEvents = allEvents.filter((e) => e.status === "Upcoming");    function toCardProps(e: EventData) {
+    const filledPct = e.totalSeats > 0 ? (e.totalSeats - e.availableSeats) / e.totalSeats : 0;
+    const truncated = e.description.length > 120 ? e.description.slice(0, 120) + "..." : e.description;
     return {
       img: e.image,
       title: e.title,
       price: e.price === 0 ? "Free" : `Rs. ${e.price.toLocaleString()}`,
-      desc: e.description,
+      desc: truncated,
       btn: "Book Now",
       date: e.status === "Live now" ? "LIVE NOW" : `${e.date} \u2022 ${e.time}`,
       organizer: e.organizer || undefined,
+      soldOut: e.availableSeats === 0,
+      trending: e.availableSeats > 0 && filledPct >= 0.7,
     };
   }
 
@@ -196,20 +191,10 @@ export default function LandingPage() {
         <div className="flex-1 overflow-y-auto">
           <section className="self-stretch bg-[#00000000] pb-10">
             <div className="flex flex-col items-center self-stretch max-w-[1278px] pt-16 pb-8 px-6 mx-auto">
-              {loggedIn && user?.name ? (
-                <h1 className="text-[#DDE2F8] text-5xl text-center whitespace-pre-line">
-                  Welcome back,{" "}
-                  <span className="text-[#FF4B4B]">{user.name.split(" ")[0]}</span>
-                  <span className="block text-2xl text-[#E4BDBA]/60 mt-2 font-light">
-                    Find your next experience
-                  </span>
-                </h1>
-              ) : (
-                <h1 className="text-[#DDE2F8] text-6xl text-center w-[400px] whitespace-pre-line">
-                  {"Find Your Next\n"}
-                  <span className="text-[#FF4B4B]">Experience</span>
-                </h1>
-              )}
+              <h1 className="text-[#DDE2F8] text-6xl text-center w-[400px] whitespace-pre-line">
+                {"Find Your Next\n"}
+                <span className="text-[#FF4B4B]">Experience</span>
+              </h1>
             </div>
             {featured.length > 0 && (
               <div className="relative max-w-[1150px] mx-auto overflow-hidden rounded-2xl select-none cursor-grab active:cursor-grabbing"
@@ -232,7 +217,7 @@ export default function LandingPage() {
                           <span className="text-white text-base">{event.title}</span>
                         </div>
                         <p className="text-[#E4BDBA] text-base w-[539px] ml-16 whitespace-pre-line">
-                          {event.description}
+                          {event.description.length > 120 ? event.description.slice(0, 120) + "..." : event.description}
                         </p>
                         <div className="flex items-start pt-4 ml-16">
                           <button className="flex flex-col shrink-0 items-start bg-[#FF4B4B] text-left py-4 px-10 mr-[17px] rounded-xl border-0 hover:bg-[#E03B3B]"
@@ -281,13 +266,13 @@ export default function LandingPage() {
                   <p className="text-[#E4BDBA] text-base">Recommended based on your location: Kathmandu, Nepal</p>
                 </div>
                 <div className="flex items-center self-stretch gap-[33px]">
-                  {upcomingEvents.map((event) => (
+                  {upcomingEvents.slice(0, 2).map((event) => (
                     <EventCard key={event._id} {...toCardProps(event)} onAction={() => handleCardAction(event._id)} />
                   ))}
                 </div>
                 <div className="flex flex-col items-center self-stretch pt-4">
                   <button className="flex flex-col items-start bg-[#2F3445] text-left py-[17px] px-12 rounded-xl border border-solid border-[#2F3445] hover:bg-[#3A4155]"
-                    onClick={() => loggedIn ? router.push("/events") : setShowModal(true)}>
+                    onClick={() => router.push("/events")}>
                     <span className="text-[#DDE2F8] text-base font-bold">Explore More Events</span>
                   </button>
                 </div>
@@ -297,7 +282,6 @@ export default function LandingPage() {
           <Footer />
         </div>
       </div>
-      {showModal && <AuthModal onClose={() => setShowModal(false)} />}
     </div>
   );
 }

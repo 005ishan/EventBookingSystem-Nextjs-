@@ -75,14 +75,27 @@ function getEventStatus(dateRaw: string, timeRaw?: string): EventStatus {
 
 function EventCard({ event, onOrganizerClick }: { event: EventData; onOrganizerClick: (id: string, name: string) => void }) {
   const router = useRouter();
+  const soldOut = event.availableSeats === 0;
+  const filledPct = event.totalSeats > 0 ? (event.totalSeats - event.availableSeats) / event.totalSeats : 0;
+  const trending = !soldOut && filledPct >= 0.7;
   return (
-    <div className="w-[312px] h-[335px] bg-[#0D1223] overflow-hidden rounded-[14px] outline outline-1 outline-offset-[-1px] outline-[rgba(255,255,255,0.08)] flex flex-col shrink-0">
+    <div className={`w-[312px] h-[335px] overflow-hidden rounded-[14px] outline outline-1 outline-offset-[-1px] outline-[rgba(255,255,255,0.08)] flex flex-col shrink-0 ${soldOut ? "bg-[#0B0F1C] opacity-70" : "bg-[#0D1223]"}`}>
       <div
         className="self-stretch h-[155px] relative overflow-hidden bg-cover bg-center"
         style={{ backgroundImage: `url(${event.image})` }}
       >
         <div className="absolute inset-0 bg-[#0D1223]/60" />
-        <div className="absolute top-3 left-3">
+        <div className="absolute top-3 left-3 flex gap-1.5">
+          {trending && (
+            <span className="bg-[#FF4B4B] text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-lg">
+              Trending
+            </span>
+          )}
+          {soldOut && (
+            <span className="bg-[rgba(0,0,0,0.65)] text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm">
+              Sold Out
+            </span>
+          )}
           <span
             className={`${statusColors[event.status].bg} ${statusColors[event.status].text} px-2 py-0.5 rounded-full text-[10px] font-[DM_Sans] font-medium flex items-center gap-1.5`}
           >
@@ -109,7 +122,7 @@ function EventCard({ event, onOrganizerClick }: { event: EventData; onOrganizerC
           </span>
         </div>
         <div className="flex-1 flex flex-col justify-center">
-          <h3 className="text-[#E8E4DA] text-base font-['Playfair_Display'] font-semibold leading-[20.80px]">
+          <h3 className={`text-base font-['Playfair_Display'] font-semibold leading-[20.80px] ${soldOut ? "text-[#E8E4DA]/50" : "text-[#E8E4DA]"}`}>
             {event.title}
           </h3>
           <button
@@ -119,18 +132,23 @@ function EventCard({ event, onOrganizerClick }: { event: EventData; onOrganizerC
             Event Organized by {event.organizer}
           </button>
         </div>
-        <p className="text-[12px] font-[DM_Sans] font-light leading-[19.20px] text-[rgba(232,228,218,0.38)] line-clamp-2">
+        <p className={`text-[12px] font-[DM_Sans] font-light leading-[19.20px] line-clamp-2 ${soldOut ? "text-[rgba(232,228,218,0.20)]" : "text-[rgba(232,228,218,0.38)]"}`}>
           {event.description}
         </p>
         <div className="self-stretch pt-3 border-t border-[rgba(255,255,255,0.06)] flex items-center justify-between">
-          <span className="text-[11px] font-[DM_Sans] text-[rgba(232,228,218,0.45)]">
+          <span className={`text-[11px] font-[DM_Sans] ${soldOut ? "text-[rgba(232,228,218,0.20)]" : "text-[rgba(232,228,218,0.45)]"}`}>
             {event.availableSeats} / {event.totalSeats} seats
           </span>
           <div className="flex items-center gap-3">
             <span className="text-[13px] font-[DM_Sans] font-semibold text-[#3BA67C]">
               {event.priceNum === 0 ? "Free" : `Rs. ${event.priceNum.toLocaleString()}`}
             </span>
-            {event.status !== "Completed" && (
+            {soldOut && (
+              <span className="text-[11px] font-[DM_Sans] text-[rgba(255,75,75,0.5)] font-medium">
+                Sold Out
+              </span>
+            )}
+            {!soldOut && event.status !== "Completed" && (
               <button
                 onClick={() => router.push(`/events/${event._id}`)}
                 className="px-[14px] py-[6px] bg-[#3BA67C] rounded-[7px] hover:bg-[#2d8e68] transition-all"
@@ -140,7 +158,7 @@ function EventCard({ event, onOrganizerClick }: { event: EventData; onOrganizerC
                 </span>
               </button>
             )}
-            {event.status === "Completed" && (
+            {!soldOut && event.status === "Completed" && (
               <span className="text-[11px] font-[DM_Sans] text-[rgba(232,228,218,0.25)] italic">
                 Ended
               </span>
