@@ -44,10 +44,15 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await forgotPassword(forgotEmail);
+      const data = await forgotPassword(forgotEmail);
       setOtpTimer(600);
       setOtpExpired(false);
       setForgotStep("otp");
+      // In dev mode, auto-fill OTP from response
+      if (data.devOtp) {
+        setOtp(data.devOtp);
+        showToast(`DEV MODE: OTP ${data.devOtp} (check server console)`, "info");
+      }
     } catch (err: any) {
       const message =
         err.response?.data?.message || "Failed to send OTP. Please try again.";

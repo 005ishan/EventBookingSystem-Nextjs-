@@ -6,7 +6,7 @@ import AuthenticatedNavbar from "@/components/AuthenticatedNavbar";
 import EventCard from "@/components/EventCard";
 import Footer from "@/components/Footer";
 import { SkeletonAuthenticatedPage } from "@/components/Skeleton";
-import { isAuthenticated, getUser } from "@/services/authService";
+import { isAuthenticated } from "@/services/authService";
 import { getAllEvents } from "@/services/eventService";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:5000";
@@ -73,8 +73,6 @@ export default function DashboardPage() {
   const touchEndX = useRef<number | null>(null);
   const mouseDownX = useRef<number | null>(null);
   const minSwipe = 50;
-
-  const user = getUser();
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -166,15 +164,14 @@ export default function DashboardPage() {
 
   const featured = allEvents.slice(0, 3);
   const liveEvents = allEvents.filter((e) => e.status === "Live now");
-  const upcomingEvents = allEvents.filter((e) => e.status === "Upcoming");
-
-  function toCardProps(e: EventData) {
+  const upcomingEvents = allEvents.filter((e) => e.status === "Upcoming");    function toCardProps(e: EventData) {
     const filledPct = e.totalSeats > 0 ? (e.totalSeats - e.availableSeats) / e.totalSeats : 0;
+    const truncated = e.description.length > 120 ? e.description.slice(0, 120) + "..." : e.description;
     return {
       img: e.image,
       title: e.title,
       price: e.price === 0 ? "Free" : `Rs. ${e.price.toLocaleString()}`,
-      desc: e.description,
+      desc: truncated,
       btn: "Book Now",
       date: e.status === "Live now" ? "LIVE NOW" : `${e.date} \u2022 ${e.time}`,
       organizer: e.organizer || undefined,
@@ -197,20 +194,10 @@ export default function DashboardPage() {
         <div className="flex-1 overflow-y-auto">
           <section className="self-stretch bg-[#00000000] pb-10">
             <div className="flex flex-col items-center self-stretch max-w-[1278px] pt-16 pb-8 px-6 mx-auto">
-              {user?.name ? (
-                <h1 className="text-[#DDE2F8] text-5xl text-center whitespace-pre-line">
-                  Welcome back,{" "}
-                  <span className="text-[#FF4B4B]">{user.name.split(" ")[0]}</span>
-                  <span className="block text-2xl text-[#E4BDBA]/60 mt-2 font-light">
-                    Find your next experience
-                  </span>
-                </h1>
-              ) : (
-                <h1 className="text-[#DDE2F8] text-6xl text-center w-[400px] whitespace-pre-line">
-                  {"Find Your Next\n"}
-                  <span className="text-[#FF4B4B]">Experience</span>
-                </h1>
-              )}
+              <h1 className="text-[#DDE2F8] text-6xl text-center w-[400px] whitespace-pre-line">
+                {"Find Your Next\n"}
+                <span className="text-[#FF4B4B]">Experience</span>
+              </h1>
             </div>
 
             {loading ? (
@@ -246,7 +233,7 @@ export default function DashboardPage() {
                             <span className="text-[#E4BDBA]/50 text-xs mt-1">by {event.organizer}</span>
                           )}
                         </div>
-                        <p className="text-[#E4BDBA] text-base w-[539px] ml-16 whitespace-pre-line">{event.description}</p>
+                        <p className="text-[#E4BDBA] text-base w-[539px] ml-16 whitespace-pre-line">{event.description.length > 120 ? event.description.slice(0, 120) + "..." : event.description}</p>
                         <div className="flex items-start pt-4 ml-16">
                           <button
                             className="flex flex-col shrink-0 items-start bg-[#FF4B4B] text-left py-4 px-10 mr-[17px] rounded-xl border-0 hover:bg-[#E03B3B]"
@@ -301,7 +288,7 @@ export default function DashboardPage() {
                   <p className="text-[#E4BDBA] text-base">Recommended based on your location: Kathmandu, Nepal</p>
                 </div>
                 <div className="flex items-center self-stretch gap-[33px]">
-                  {upcomingEvents.map((event) => (
+                  {upcomingEvents.slice(0, 2).map((event) => (
                     <EventCard key={event._id} {...toCardProps(event)} onAction={() => router.push(`/events/${event._id}`)} />
                   ))}
                 </div>

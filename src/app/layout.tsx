@@ -1,5 +1,6 @@
 import "./globals.css";
 import ClientShell from "@/components/ClientShell";
+import CookieConsent from "@/components/CookieConsent";
 
 export default function RootLayout({
   children,
@@ -18,6 +19,7 @@ export default function RootLayout({
       </head>
       <body>
         <ClientShell>{children}</ClientShell>
+        <CookieConsent />
       </body>
     </html>
   );

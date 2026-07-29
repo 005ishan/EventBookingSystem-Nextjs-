@@ -39,8 +39,23 @@ export default function SignupPage() {
       return;
     }
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters");
+      return;
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      setError("Password must contain at least one uppercase letter");
+      return;
+    }
+
+    if (!/[a-z]/.test(password)) {
+      setError("Password must contain at least one lowercase letter");
+      return;
+    }
+
+    if (!/[0-9]/.test(password)) {
+      setError("Password must contain at least one number");
       return;
     }
 
@@ -305,8 +320,8 @@ export default function SignupPage() {
                 setPassword(e.target.value);
                 const pwd = e.target.value;
                 let score = 0;
-                if (pwd.length >= 6) score += 20;
-                if (pwd.length >= 10) score += 20;
+                if (pwd.length >= 8) score += 20;
+                if (pwd.length >= 12) score += 20;
                 if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) score += 20;
                 if (/[0-9]/.test(pwd)) score += 20;
                 if (/[^a-zA-Z0-9]/.test(pwd)) score += 20;
